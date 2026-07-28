@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : search.php
-// REVISION : 1.9 - Priorisation automatique des annonces avec bannière active en tête de recherche
+// REVISION : 1.9-fixed - SQL 1.9 intact + Verrouillage JS du bouton à vide
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -78,7 +78,8 @@ if (!empty($recherche) && mb_strlen($recherche, 'UTF-8') < 3) {
     $recherche_effectuee = true;
 }
 
-if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $ville_selectionnee > 0 || isset($_GET['q']))) {
+// RETRAIT DU "isset($_GET['q'])" POUR ÉVITER LES 911 RÉSULTATS QUAND TOUT EST VIDE
+if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $ville_selectionnee > 0)) {
     $recherche_effectuee = true;
     try {
         $sql_count = "SELECT COUNT(*) FROM jevend_annonces a JOIN jevend_utilisateurs u ON a.id_utilisateur = u.id_utilisateur WHERE a.statut = 'actif'";
@@ -104,7 +105,7 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
         $total_pages = ceil($total_resultats / $annonces_par_page);
 
         if ($total_resultats > 0) {
-            // EXTRACTION DES ANNONCES AVEC PRIORITÉ BANNIÈRE ACTIVE
+            // REQUÊTE SQL 1.9 STRICTEMENT INTACTE (GESTION DES BANNIÈRES)[cite: 1, 2]
             $sql = "
                 SELECT a.*, u.nom AS vendeur_nom, u.id_ville AS vendeur_ville_id, v.nom_ville AS vendeur_ville_nom,
                        IF(le.id_envie IS NOT NULL, 1, 0) AS est_favoris,
@@ -132,7 +133,7 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
                 $params[':ville'] = $ville_selectionnee;
             }
 
-            // TRI : BANNIÈRES ACTIVES D'ABORD, PUIS PAR DATE DE CRÉATION
+            // TRI : BANNIÈRES ACTIVES D'ABORD, PUIS PAR DATE DE CRÉATION[cite: 1, 2]
             $sql .= " ORDER BY a_banniere DESC, a.date_creation DESC LIMIT :offset, :limit";
 
             $stmt = $bdd->prepare($sql);
@@ -210,6 +211,7 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
         .champ-saisie-search { flex: 1; border: none; outline: none; font-size: 1.05rem; color: #1e293b; background: transparent; padding: 0 6px; min-width: 120px; }
         .btn-soumettre-search { background: #2563eb; color: #ffffff; border: none; padding: 8px 18px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.15s ease; flex-shrink: 0; white-space: nowrap; }
         .btn-soumettre-search:hover { background: #1d4ed8; }
+        .btn-soumettre-search:disabled { background: #94a3b8 !important; opacity: 0.6 !important; cursor: not-allowed !important; }
         
         .dropdown-categories-menu { display: none; position: absolute; top: 52px; left: 10px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 260px; max-height: 280px; overflow-y: auto; z-index: 100; text-align: left; padding: 8px 0; }
         .dropdown-categories-menu.ouvert { display: block; }
@@ -353,6 +355,7 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
     const inputCatId = document.getElementById('input-cat-id');
     const badgeCat = document.getElementById('badge-cat');
     const texteBadge = document.getElementById('texte-badge-cat');
+    const formSearch = document.getElementById('form-moteur-search');
 
     btnPlus.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -382,6 +385,7 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
         menuDropdown.classList.remove('ouvert');
     });
 
+    // GESTION DU VERROUILLAGE DU BOUTON SI LES CHAMPS SONT VIDES
     function verifierCompteResultats() {
         const q = document.getElementById('input-q-search').value.trim();
         const cat = document.getElementById('input-cat-id').value;
@@ -389,16 +393,16 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
         const btnSubmit = document.getElementById('btn-submit-search');
         const msgDiv = document.getElementById('msg-ajax-search');
 
+        // Si aucun critère n'est saisi, on désactive le bouton immédiatement
         if (q.length === 0 && cat == 0 && ville == 0) {
-            btnSubmit.disabled = false;
-            btnSubmit.style.opacity = '1';
-            btnSubmit.style.cursor = 'pointer';
-            btnSubmit.style.backgroundColor = '#2563eb';
+            btnSubmit.disabled = true;
             btnSubmit.innerHTML = '🔍 Rechercher';
-            msgDiv.textContent = '';
+            msgDiv.style.color = '#64748b';
+            msgDiv.textContent = '💡 Entrez un mot-clé ou choisissez une option pour rechercher.';
             return;
         }
 
+        // Sinon, vérification AJAX du nombre de résultats pour guider l'utilisateur
         fetch(`compter_resultats_search.php?q=${encodeURIComponent(q)}&cat=${cat}&ville=${ville}`)
             .then(res => res.json())
             .then(data => {
@@ -406,17 +410,11 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
                     const total = data.total;
                     if (total > 0) {
                         btnSubmit.disabled = false;
-                        btnSubmit.style.opacity = '1';
-                        btnSubmit.style.cursor = 'pointer';
-                        btnSubmit.style.backgroundColor = '#2563eb';
                         btnSubmit.innerHTML = `🔍 Rechercher (${total})`;
                         msgDiv.style.color = '#16a34a';
                         msgDiv.textContent = `✅ ${total} annonce(s) disponible(s) selon vos critères.`;
                     } else {
                         btnSubmit.disabled = true;
-                        btnSubmit.style.opacity = '0.5';
-                        btnSubmit.style.cursor = 'not-allowed';
-                        btnSubmit.style.backgroundColor = '#64748b';
                         btnSubmit.innerHTML = '🔍 Rechercher (0)';
                         msgDiv.style.color = '#dc2626';
                         msgDiv.textContent = '❌ Aucun résultat disponible pour cette sélection.';
@@ -426,7 +424,21 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
             .catch(err => console.error(err));
     }
 
+    // BLOQUER LA SOUMISSION DU FORMULAIRE SI TOUT EST VIDE
+    formSearch.addEventListener('submit', function(e) {
+        const q = document.getElementById('input-q-search').value.trim();
+        const cat = document.getElementById('input-cat-id').value;
+        const ville = document.getElementById('select-ville-search').value;
+
+        if (q.length === 0 && cat == 0 && ville == 0) {
+            e.preventDefault();
+        }
+    });
+
     document.getElementById('input-q-search').addEventListener('input', verifierCompteResultats);
+    
+    // EXÉCUTION AU CHARGEMENT DE LA PAGE POUR VERROUILLER LE BOUTON SI NÉCESSAIRE
+    window.addEventListener('DOMContentLoaded', verifierCompteResultats);
     </script>
 </body>
 </html>
