@@ -2,13 +2,8 @@
 /*
 ====================================================
 Fichier       : admin_modules/_admin_nav.php
-Révision      : v1.0
+Révision      : v1.1
 Description   : Barre de navigation modulaire pour le panneau d'administration
-Nouveautés    : 
-  - Disposition dynamique en grille (Grid CSS) à 4 onglets maximum par ligne
-  - Espacement régulier et net entre chaque rangée
-  - Ajout du 7e onglet "❓ F.A.Q. Admin"
-  - Responsive : passe automatiquement à 2 colonnes sur tablette et 1 colonne sur mobile
 ====================================================
 */
 ?>
@@ -68,16 +63,17 @@ Nouveautés    :
     }
 </style>
 
-<!-- RANGÉES D'ONGLETS (MAXIMUM 4 PAR LIGNE) -->
+<!-- RANGÉES D'ONGLETS -->
 <div class="admin-navigation-onglets">
     <!-- Ligne 1 -->
-    <button class="onglet-btn actif" onclick="changerOnglet('onglet-traffic')">📊 Traffic & Connexions</button>
-    <button class="onglet-btn" onclick="changerOnglet('onglet-membres')">👥 Gestion des Membres</button>
-    <button class="onglet-btn" onclick="changerOnglet('onglet-categories')">📁 Gestion des Catégories</button>
-    <button class="onglet-btn" onclick="changerOnglet('onglet-tarifs')">🏷️ Tarifs Publicités</button>
+    <button type="button" class="onglet-btn actif" onclick="changerOnglet('onglet-traffic')">📊 Traffic & Connexions</button>
+    <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-membres')">👥 Gestion des Membres</button>
+    <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-categories')">📁 Gestion des Catégories</button>
+    <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-tarifs')">🏷️ Tarifs Publicités</button>
 
     <!-- Ligne 2 -->
-    <button class="onglet-btn" onclick="changerOnglet('onglet-compta')">💰 Statistiques Comptables</button>
-    <button class="onglet-btn" onclick="changerOnglet('onglet-admin-ban')">📢 Info Direction</button>
-    <button class="onglet-btn" onclick="changerOnglet('onglet-faq')">❓ F.A.Q. Admin</button>
+    <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-compta')">💰 Statistiques Comptables</button>
+    <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-admin-ban')">📢 Info Direction</button>
+    <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-faq')">❓ F.A.Q. Admin</button>
+    <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-rpm')">⚙️ RPM</button>
 </div>
