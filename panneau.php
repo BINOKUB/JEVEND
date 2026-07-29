@@ -2,11 +2,8 @@
 /*
 ====================================================
 Fichier       : panneau.php
-Révision      : v2.3
+Révision      : v2.4
 Description   : Panneau de configuration - JeVend.com
-Nouveautés    : 
-  - Conservation automatique de l'onglet actif après soumission de formulaire (via URL hash #)
-  - Mise à jour dynamique de l'URL lors du changement d'onglet
 ====================================================
 */
 
@@ -36,6 +33,42 @@ require_once 'config.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Administration — jevend.com</title>
     <link rel="stylesheet" href="style_panneau.css">
+    
+    <!-- SCRIPT PLACÉ DANS LE HEAD POUR GARANTIR SON CHARGEMENT IMMÉDIAT -->
+    <script>
+    function changerOnglet(idSection) {
+        const sections = document.querySelectorAll('.section-panneau');
+        sections.forEach(sec => sec.classList.remove('active'));
+
+        const boutons = document.querySelectorAll('.onglet-btn');
+        boutons.forEach(btn => btn.classList.remove('actif'));
+
+        const sectionCible = document.getElementById(idSection);
+        if (sectionCible) {
+            sectionCible.classList.add('active');
+        }
+
+        const boutonActif = Array.from(boutons).find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(idSection));
+        if (boutonActif) {
+            boutonActif.classList.add('actif');
+        }
+
+        // Met à jour l'ancre dans l'URL sans recharger la page
+        if (history.pushState) {
+            history.pushState(null, null, '#' + idSection);
+        } else {
+            location.hash = '#' + idSection;
+        }
+    }
+
+    // Réouverture automatique de l'onglet actif si une ancre est présente dans l'URL
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash.replace('#', '');
+        if (hash && document.getElementById(hash)) {
+            changerOnglet(hash);
+        }
+    });
+    </script>
 </head>
 <body class="admin-body">
 
@@ -94,41 +127,12 @@ require_once 'config.php';
             <?php if (file_exists('admin_modules/_admin_faq.php')) include 'admin_modules/_admin_faq.php'; ?>
         </div>
 
+        <!-- MODULE 8 : RPM (Régulation, Publicités & Métriques) -->
+        <div id="onglet-rpm" class="section-panneau">
+            <?php if (file_exists('admin_modules/_admin_rpm.php')) include 'admin_modules/_admin_rpm.php'; ?>
+        </div>
+
     </div>
 
-    <script>
-    function changerOnglet(idSection) {
-        const sections = document.querySelectorAll('.section-panneau');
-        sections.forEach(sec => sec.classList.remove('active'));
-
-        const boutons = document.querySelectorAll('.onglet-btn');
-        boutons.forEach(btn => btn.classList.remove('actif'));
-
-        const sectionCible = document.getElementById(idSection);
-        if (sectionCible) {
-            sectionCible.classList.add('active');
-        }
-
-        const boutonActif = Array.from(boutons).find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(idSection));
-        if (boutonActif) {
-            boutonActif.classList.add('actif');
-        }
-
-        // Met à jour l'ancre dans l'URL sans recharger la page
-        if (history.pushState) {
-            history.pushState(null, null, '#' + idSection);
-        } else {
-            location.hash = '#' + idSection;
-        }
-    }
-
-    // Réouverture automatique de l'onglet actif si une ancre est présente dans l'URL (#onglet-faq, etc.)
-    document.addEventListener('DOMContentLoaded', function() {
-        const hash = window.location.hash.replace('#', '');
-        if (hash && document.getElementById(hash)) {
-            changerOnglet(hash);
-        }
-    });
-    </script>
 </body>
 </html>
