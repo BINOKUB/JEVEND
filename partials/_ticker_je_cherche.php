@@ -1,9 +1,14 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_ticker_je_cherche.php
-// REVISION : 1.0 - Ruban d'actualité "Je Cherche" sous la navigation principale
-// DESCRIPTION : Bandeau défilant horizontal d'opportunités d'achats locaux.
+// REVISION : 1.1 - Masquage automatique pour les comptes PRO
+// DESCRIPTION : Ruban d'actualité "Je Cherche" sous la navigation principale.
 // =============================================================================
+
+// SÉCURITÉ : Si l'utilisateur connecté est un compte PRO, on ne charge rien du tout
+if (isset($_SESSION['type_compte']) && $_SESSION['type_compte'] === 'pro') {
+    return;
+}
 
 $recherches_ticker = [];
 if (isset($bdd)) {
@@ -179,7 +184,6 @@ if (isset($bdd)) {
         <div class="ticker-piste-texte">
             <?php if (!empty($recherches_ticker)): ?>
                 <?php 
-                // Doublon de la boucle pour assurer un défilement infini sans saut
                 $items_a_afficher = array_merge($recherches_ticker, $recherches_ticker);
                 foreach ($items_a_afficher as $r): 
                 ?>
@@ -193,7 +197,6 @@ if (isset($bdd)) {
                     </a>
                 <?php endforeach; ?>
             <?php else: ?>
-                <!-- Message de démarrage par défaut quand aucune recherche n'est en BDD -->
                 <span class="ticker-item-demande" style="cursor: default;">
                     📍 <strong style="color: #38bdf8;">Matane & Régions</strong> : Vous cherchez un objet spécifique ? Publiez votre demande gratuitement en 1 clic !
                 </span>
