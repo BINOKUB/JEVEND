@@ -1,20 +1,20 @@
 <?php
 // =============================================================================
 // SCRIPT : connexion.php
-// REVISION : 3.0 - Prise en charge de la redirection automatique post-connexion
+// REVISION : 3.1 - Redirection dynamique basée sur le champ `role` de la BDD
 // NOM DU SCRIPT : connexion.php
 // =============================================================================
 session_start();
 require_once 'config.php';
 date_default_timezone_set('America/Montreal');
 
-// Capturation et mémorisation de l'URL de retour souhaitée
+// Capturation et mémorisation de l'URL de retour souhaitée[cite: 6]
 $redirect_cible = $_GET['redirect'] ?? $_POST['redirect'] ?? $_SESSION['redirect_after_login'] ?? '';
 if (!empty($redirect_cible)) {
     $_SESSION['redirect_after_login'] = $redirect_cible;
 }
 
-// Si l'utilisateur est déjà connecté, redirection dynamique
+// Si l'utilisateur est déjà connecté, redirection dynamique basée sur son rôle[cite: 6]
 if (isset($_SESSION['id_utilisateur'])) {
     $destination = $_SESSION['redirect_after_login'] ?? null;
     unset($_SESSION['redirect_after_login']);
@@ -34,10 +34,10 @@ if (isset($_SESSION['id_utilisateur'])) {
 $erreur = "";
 $succes = "";
 
-// Récupération automatique du courriel si on vient tout juste de s'inscrire
+// Récupération automatique du courriel si on vient tout juste de s'inscrire[cite: 6]
 $email_saisi = $_SESSION['temp_email_connexion'] ?? '';
 
-// ÉTAPE 1 : DEMANDE DE LIEN / GÉNÉRATION DU JETON
+// ÉTAPE 1 : DEMANDE DE LIEN / GÉNÉRATION DU JETON[cite: 6]
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_demande'])) {
     $courriel = trim($_POST['courriel'] ?? '');
 
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_demande'])) {
     }
 }
 
-// ÉTAPE 2 : VALIDATION DU CODE DE SÉCURITÉ ET RECONNAISSANCE DU RÔLE / TYPE DE COMPTE
+// ÉTAPE 2 : VALIDATION DU CODE DE SÉCURITÉ ET CHARGEMENT DU RÔLE DEPUIS LA BDD[cite: 6]
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_validation'])) {
     $courriel_session = $_SESSION['temp_email_connexion'] ?? '';
     $code_saisi = trim($_POST['code_securite'] ?? '');
@@ -148,26 +148,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_validation']))
 
                     unset($_SESSION['temp_email_connexion']);
 
+                    // ENREGISTREMENT DE LA SESSION DEPUIS LA BDD
                     $_SESSION['id_utilisateur'] = $user['id_utilisateur'];
                     $_SESSION['nom']            = $user['nom'];
                     $_SESSION['courriel']       = $user['courriel'];
                     $_SESSION['type_compte']    = $user['type_compte'] ?? 'particulier';
+                    $_SESSION['role']           = $user['role'] ?? 'membre'; // <-- Stockage dynamique du rôle BDD
 
-                    $courriel_admin_supreme = 'douimet61@gmail.com';
-
-                    // Détermination de la destination par défaut
+                    // DÉTERMINATION DE LA DESTINATION SELON LE RÔLE DE LA BDD
                     $destination_defaut = 'espace_membre.php';
-                    if ($user['courriel'] === $courriel_admin_supreme) {
-                        $_SESSION['role'] = 'admin';
+
+                    if ($_SESSION['role'] === 'admin') {
                         $destination_defaut = 'panneau.php';
-                    } else {
-                        $_SESSION['role'] = 'membre';
-                        if ($_SESSION['type_compte'] === 'pro') {
-                            $destination_defaut = 'espace_membre_pro.php';
-                        }
+                    } elseif ($_SESSION['type_compte'] === 'pro') {
+                        $destination_defaut = 'espace_membre_pro.php';
                     }
 
-                    // REDIRECTION : Priorité au retour à la page visitée avant la connexion
+                    // REDIRECTION : Priorité au retour à la page visitée avant la connexion, sinon défaut[cite: 6]
                     $destination_finale = $_SESSION['redirect_after_login'] ?? $destination_defaut;
                     unset($_SESSION['redirect_after_login']);
 

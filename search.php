@@ -328,7 +328,14 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
                     <?php include 'partials/_search_vitrine_bronze.php'; ?>
 
                     <!-- 2. ANNONCES CLASSIQUES (AVEC PRIORISATION DES BANNIÈRES) -->
-                    <?php include 'partials/_search_annonce.php'; ?>
+                    <?php 
+                    $ids_exclus = [];
+                    if (!empty($resultats)) {
+                        foreach ($resultats as $res_item) {
+                            $ids_exclus[] = $res_item['id_annonces'];
+                        }
+                    }
+                    include 'partials/_search_annonce.php'; ?>
 
                     <!-- 3. RECHERCHES CONNEXES / AUTRES VILLES EN BAS -->
                     <?php include 'partials/_search_connexes.php'; ?>

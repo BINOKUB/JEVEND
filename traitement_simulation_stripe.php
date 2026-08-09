@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     switch ($type_produit) {
         case 'reguliere':
-            if ($duree_jours < 5) { $erreur_logique = true; }
+            if ($duree_jours < 10) { $erreur_logique = true; }
             else { $montant_paye = $duree_jours * 1.00; }
             break;
         case 'bronze':

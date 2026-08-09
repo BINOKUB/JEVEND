@@ -1,10 +1,10 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : traitement_paiement_pro.php
-// REVISION     : 1.7 - URL de destination strictement obligatoire (Aucun fallback)
-// DESCRIPTION  : Suppression de tout fallback sur de vieilles pages.
-//                Rend la saisie de l'URL de destination strictement obligatoire 
-//                côté serveur avec ajout automatique du protocole https:// si requis.
+// REVISION     : 1.8 - Vérification des quotas globaux (3 Suprême, 20 Premium) 
+//                      et individuels (5 Premium) avec gestion anti-concurrence.
+// DESCRIPTION  : Valide les quotas en temps réel avant tout traitement d'image 
+//                pour contrer les cas de soumission simultanée (race condition).
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -50,6 +50,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!in_array($choix_forfait, ['supreme', 'premium'])) {
         header('Location: espace_membre_pro.php?erreur=forfait_invalide');
         exit();
+    }
+
+    // -------------------------------------------------------------------------
+    // VÉRIFICATION DES QUOTAS EN TEMPS RÉEL (ANTI-CONCURRENCE / RACE CONDITION)
+    // -------------------------------------------------------------------------
+    if ($choix_forfait === 'supreme') {
+        // Quota global Suprême : Maximum 3 actifs
+        $stmt_check_sup = $bdd->prepare("SELECT COUNT(*) FROM jevend_bannieres_actives_pro WHERE type_banniere = 'supreme' AND date_fin > NOW()");
+        $stmt_check_sup->execute();
+        if ((int)$stmt_check_sup->fetchColumn() >= 3) {
+            header('Location: espace_membre_pro.php?erreur=quota_atteint');
+            exit();
+        }
+    } else {
+        // Quota global Premium : Maximum 20 actifs
+        $stmt_check_prem_global = $bdd->prepare("SELECT COUNT(*) FROM jevend_bannieres_actives_pro WHERE type_banniere = 'premium' AND date_fin > NOW()");
+        $stmt_check_prem_global->execute();
+        if ((int)$stmt_check_prem_global->fetchColumn() >= 20) {
+            header('Location: espace_membre_pro.php?erreur=quota_atteint');
+            exit();
+        }
+
+        // Quota individuel Premium par utilisateur : Maximum 5 actifs
+        $stmt_check_prem_perso = $bdd->prepare("SELECT COUNT(*) FROM jevend_bannieres_actives_pro WHERE type_banniere = 'premium' AND id_utilisateur = ? AND date_fin > NOW()");
+        $stmt_check_prem_perso->execute([$id_user]);
+        if ((int)$stmt_check_prem_perso->fetchColumn() >= 5) {
+            header('Location: espace_membre_pro.php?erreur=quota_atteint');
+            exit();
+        }
     }
 
     // Récupération du tarif mensuel depuis jevend_tarifs_pro

@@ -6,7 +6,7 @@
 session_start();
 require_once 'config.php';
 require_once 'partials/_chek_bann_pro.php';
-include_once 'partials/_check_bann_regulier.php';
+// include_once 'partials/_check_bann_regulier.php';
 include_once 'partials/_check_ann_reguliere.php';
 require_once 'fonctions_geoloc.php';
 require_once 'partials/_jevend_stat.php';
@@ -94,6 +94,9 @@ $total_bannieres_flux = count($bannieres_flux);
 <body class="admin-body">
 
     <?php include 'partials/_nav_publique.php'; ?>
+
+<!-- BANDEAU LIVE "JE CHERCHE" (Intercalé sous la navigation) -->
+<?php include 'partials/_ticker_je_cherche.php'; ?>
 
     <!-- 1. CARROUSEL SUPRÊME B2B -->
     <?php if (!empty($bannieres_supreme_pro)): ?>
