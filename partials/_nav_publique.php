@@ -217,7 +217,7 @@ $url_courante = urlencode($_SERVER['REQUEST_URI'] ?? 'index.php');
 
         <?php if (isset($_SESSION['id_utilisateur'])): ?>
             <span style="color: #94a3b8; font-size: 0.85rem; display: inline-block; white-space: nowrap;">
-    👤 <a href="edit_membre_pro.php" style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #ffffff;" title="Modifier mes informations marchandes"><strong><?= htmlspecialchars($_SESSION['nom_entreprise'] ?? $_SESSION['nom'] ?? 'Membre') ?></strong></a>
+    👤 <a href="." style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #ffffff;" title="Modifier mes informations marchandes"><strong><?= htmlspecialchars($_SESSION['nom_entreprise'] ?? $_SESSION['nom'] ?? 'Membre') ?>....</strong></a>
 </span>
 
             <!-- LIEN DIRECT : MES RECHERCHES (HISTORIQUE PERSONNEL) -->
