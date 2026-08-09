@@ -1,14 +1,20 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : espace_membre.php
-// REVISION     : 4.0 - Modularité complète des onglets de l'espace membre
-// DESCRIPTION  : Espace membre allégé avec intégration modulaire des vues.
+// REVISION     : 4.1 - Sécurisation anti-pro (Redirection vers espace_membre_pro.php)
+// DESCRIPTION  : Espace membre régulier avec protection d'accès.
 // =============================================================================
 session_start();
 
 if (!isset($_SESSION['id_utilisateur'])) { 
     header('Location: connexion.php'); 
     exit(); 
+}
+
+// SÉCURITÉ : Si un compte marchand PRO tente d'accéder à l'espace régulier, on le redirige
+if (isset($_SESSION['type_compte']) && $_SESSION['type_compte'] === 'pro') {
+    header('Location: espace_membre_pro.php');
+    exit();
 }
 
 require_once 'config.php';
