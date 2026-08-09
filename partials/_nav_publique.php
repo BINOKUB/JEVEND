@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_nav_publique.php
-// REVISION : 1.7 - Capturation de l'URL courante pour retour après connexion
+// REVISION : 1.10 - Ajout du slogan "« Premier arrivé, premier vendu »" à gauche
 // MODULE UNIQUE
 // =============================================================================
 
@@ -19,6 +19,11 @@ $url_courante = urlencode($_SERVER['REQUEST_URI'] ?? 'index.php');
         justify-content: space-between;
         align-items: center;
     }
+    .nav-gauche-publique {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
     /* Conteneur du logo pour un alignement vertical parfait */
     .logo-nav-container {
         display: flex;
@@ -30,6 +35,13 @@ $url_courante = urlencode($_SERVER['REQUEST_URI'] ?? 'index.php');
         width: auto;
         display: block;
         border-radius: 4px;
+    }
+    .slogan-nav-pub {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        font-style: italic;
+        font-weight: 500;
+        white-space: nowrap;
     }
     .liens-session-zone {
         display: flex;
@@ -50,7 +62,7 @@ $url_courante = urlencode($_SERVER['REQUEST_URI'] ?? 'index.php');
         transition: all 0.15s ease;
     }
     .btn-nav-recherche:hover {
-        color: #00f3ff; /* Ton cyan signature */
+        color: #00f3ff;
         background-color: #1e293b;
         transform: scale(1.05);
     }
@@ -75,6 +87,49 @@ $url_courante = urlencode($_SERVER['REQUEST_URI'] ?? 'index.php');
         background-color: #1e293b;
     }
 
+    /* STYLE DU LIEN LA ZONE JE CHERCHE */
+    .btn-nav-zone-cherche {
+        color: #f59e0b;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 6px 10px;
+        border-radius: 4px;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+    .btn-nav-zone-cherche:hover {
+        color: #ffffff;
+        background-color: #f59e0b;
+    }
+    .btn-nav-zone-cherche.active {
+        color: #ffffff;
+        background-color: #d97706;
+        border-color: #d97706;
+    }
+
+    /* STYLE DU LIEN MES RECHERCHES */
+    .btn-nav-mes-recherches {
+        color: #38bdf8;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 6px 10px;
+        border-radius: 4px;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+    .btn-nav-mes-recherches:hover {
+        color: #ffffff;
+        background-color: #1e293b;
+    }
+    .btn-nav-mes-recherches.active {
+        color: #ffffff;
+        background-color: #1e293b;
+        border: 1px solid #38bdf8;
+    }
+
     .btn-nav-membre {
         background-color: #2563eb;
         color: #ffffff;
@@ -96,6 +151,12 @@ $url_courante = urlencode($_SERVER['REQUEST_URI'] ?? 'index.php');
     }
     .btn-nav-deconnexion:hover { color: #f43f5e; }
 
+    @media (max-width: 992px) {
+        .slogan-nav-pub {
+            display: none;
+        }
+    }
+
     /* === CORRECTIF CHIRURGICAL POUR SERRAGE MOBILE === */
     @media (max-width: 768px) {
         .barre-navigation-globale {
@@ -103,6 +164,10 @@ $url_courante = urlencode($_SERVER['REQUEST_URI'] ?? 'index.php');
             gap: 12px;
             padding: 15px;
             text-align: center;
+        }
+        .nav-gauche-publique {
+            flex-direction: column;
+            gap: 8px;
         }
         .logo-nav-img {
             max-height: 38px;
@@ -130,9 +195,13 @@ $url_courante = urlencode($_SERVER['REQUEST_URI'] ?? 'index.php');
 </style>
 
 <nav class="barre-navigation-globale">
-    <a href="index.php" class="logo-nav-container">
-        <img src="assets/LOGO_JEVEND-COM.jpeg" alt="jevend.com" class="logo-nav-img">
-    </a>
+    <div class="nav-gauche-publique">
+        <a href="index.php" class="logo-nav-container">
+            <img src="assets/LOGO_JEVEND-COM.jpeg" alt="jevend.com" class="logo-nav-img">
+        </a>
+        <span class="slogan-nav-pub">« Premier arrivé, premier vendu »</span>
+    </div>
+
     <div class="liens-session-zone">
         
         <!-- Injecté dynamiquement : affiché partout SAUF sur la page search.php elle-même -->
@@ -140,13 +209,19 @@ $url_courante = urlencode($_SERVER['REQUEST_URI'] ?? 'index.php');
             <a href="search.php" class="btn-nav-recherche" title="Rechercher une annonce">🔍</a>
         <?php endif; ?>
 
-        <!-- LIEN F.A.Q. (Positionné entre la loupe et la zone de connexion/session) -->
+        <!-- LIEN F.A.Q. -->
         <a href="faq.php" class="btn-nav-faq <?= ($page_active === 'faq.php') ? 'active' : '' ?>" title="Foire Aux Questions">F.A.Q.</a>
+
+        <!-- LIEN PERMANENT : LA ZONE JE CHERCHE -->
+        <a href="zone_cherche.php" class="btn-nav-zone-cherche <?= ($page_active === 'zone_cherche.php') ? 'active' : '' ?>" title="La Zone Je Cherche">🎯 Je Cherche</a>
 
         <?php if (isset($_SESSION['id_utilisateur'])): ?>
             <span style="color: #94a3b8; font-size: 0.85rem; display: inline-block; white-space: nowrap;">
                 👤 <?= htmlspecialchars($_SESSION['nom_entreprise'] ?? $_SESSION['nom'] ?? 'Membre') ?>
             </span>
+
+            <!-- LIEN DIRECT : MES RECHERCHES (HISTORIQUE PERSONNEL) -->
+            <a href="mes_recherches.php" class="btn-nav-mes-recherches <?= ($page_active === 'mes_recherches.php') ? 'active' : '' ?>" title="Mes recherches Je Cherche">📋 Mes recherches</a>
 
             <!-- DIRECTION TRIVALENTE SEGMENTÉE (ADMIN VS PRO VS PARTICULIER) -->
             <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>

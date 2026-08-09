@@ -1,15 +1,19 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_search_connexes.php
-// REVISION : 1.3 - Prise en charge des suggestions dans d'autres régions/villes
-// DESCRIPTION : Si une ville est sélectionnée, cherche 4 offres similaires hors de la ville.
+// REVISION     : 2.0 - Filtrage régional strict / Global + Exclusion d'IDs + Bannières d'incitation
+// DESCRIPTION  : Gère l'affichage des suggestions connexes ou d'une bannière publicitaire aléatoire.
 // =============================================================================
 
 $suggestions_annonces = [];
 $titre_section_connexes = "💡 Ces articles pourraient aussi vous intéresser :";
+$afficher_banniere_incitation = false;
+$fichier_banniere_a_afficher = '';
 
 try {
-    if (!empty($recherche) || $cat_selectionnee > 0 || !empty($ville_selectionnee)) {
+    if (!empty($recherche) || ($cat_selectionnee ?? 0) > 0 || !empty($ville_selectionnee)) {
+        
+        // 1. Requête de base pour les suggestions
         $sql_sug = "
             SELECT a.id_annonces, a.titre_objet_nettoye, a.prix, a.image_courante, v.nom_ville AS vendeur_ville_nom
             FROM jevend_annonces a
@@ -19,33 +23,82 @@ try {
         ";
         $params_sug = [];
 
-        // SI UNE VILLE EST SÉLECTIONNÉE, ON CHERCHE DANS LES VILLES VOISINES
-        if (!empty($ville_selectionnee) && $ville_selectionnee > 0) {
-            $sql_sug .= " AND u.id_ville != :ville_exclue";
-            $params_sug[':ville_exclue'] = $ville_selectionnee;
-            $titre_section_connexes = "💡 Disponibles dans les villes voisines :";
+        // 2. EXCLUSION SÉCURISÉE DES ANNONCES DÉJÀ AFFICHÉES DANS LA PAGE PRINCIPALE
+        $tableau_exclus = [];
+        if (isset($ids_exclus) && is_array($ids_exclus)) {
+            $tableau_exclus = $ids_exclus;
+        } elseif (isset($ids_deja_affiches) && is_array($ids_deja_affiches)) {
+            $tableau_exclus = $ids_deja_affiches;
         }
 
+        if (!empty($tableau_exclus)) {
+            $ids_securises = array_map('intval', $tableau_exclus);
+            if (!empty($ids_securises)) {
+                $placeholders = implode(',', array_fill(0, count($ids_securises), '?'));
+                $sql_sug .= " AND a.id_annonces NOT IN ($placeholders)";
+                $params_sug = array_merge($params_sug, $ids_securises);
+            }
+        }
+
+        // 3. GESTION GÉOGRAPHIQUE : VILLE SPÉCIFIQUE (MÊME RÉGION) VS TOUTES LES VILLES
+        if (!empty($ville_selectionnee) && (int)$ville_selectionnee > 0) {
+            // Récupérer la région de la ville sélectionnée
+            $stmt_reg = $bdd->prepare("SELECT id_region FROM jevend_villes WHERE id_ville = ?");
+            $stmt_reg->execute([(int)$ville_selectionnee]);
+            $id_region_cible = $stmt_reg->fetchColumn();
+
+            if ($id_region_cible) {
+                // Restreindre aux autres villes de la MÊME région, en excluant la ville exacte
+                $sql_sug .= " AND v.id_region = ? AND u.id_ville != ?";
+                $params_sug[] = $id_region_cible;
+                $params_sug[] = (int)$ville_selectionnee;
+                $titre_section_connexes = "💡 Disponibles dans votre région :";
+            } else {
+                // Secours si la région n'est pas trouvée : exclure juste la ville
+                $sql_sug .= " AND u.id_ville != ?";
+                $params_sug[] = (int)$ville_selectionnee;
+                $titre_section_connexes = "💡 Disponibles dans les environs :";
+            }
+        }
+
+        // 4. FILTRE PAR MOT-CLÉ (RACINE DE RECHERCHE)
         if (!empty($recherche)) {
             $racine_recherche = mb_substr($recherche, 0, 4, 'UTF-8');
-            $sql_sug .= " AND a.titre_objet_nettoye LIKE :racine";
-            $params_sug[':racine'] = '%' . $racine_recherche . '%';
+            $sql_sug .= " AND a.titre_objet_nettoye LIKE ?";
+            $params_sug[] = '%' . $racine_recherche . '%';
         }
 
-        if ($cat_selectionnee > 0) {
-            $sql_sug .= " AND a.id_categorie = :cat";
-            $params_sug[':cat'] = $cat_selectionnee;
+        // 5. FILTRE PAR CATÉGORIE
+        if (!empty($cat_selectionnee) && (int)$cat_selectionnee > 0) {
+            $sql_sug .= " AND a.id_categorie = ?";
+            $params_sug[] = (int)$cat_selectionnee;
         }
 
         $sql_sug .= " ORDER BY RAND() LIMIT 4";
+        
         $stmt_sug = $bdd->prepare($sql_sug);
         $stmt_sug->execute($params_sug);
         $suggestions_annonces = $stmt_sug->fetchAll(PDO::FETCH_ASSOC);
     }
-} catch (PDOException $e) {}
+} catch (PDOException $e) {
+    $suggestions_annonces = [];
+}
+
+// 6. SI AUCUNE CORRESPONDANCE : CHOIX ALÉATOIRE D'UNE BANNIÈRE D'INCITATION
+if (empty($suggestions_annonces)) {
+    $afficher_banniere_incitation = true;
+    $liste_fichiers_bannieres = [
+        '_search_bann-r_connexe.php',
+        '_search_bann-s_connexe.php',
+        '_search_bann-p_connexe.php'
+    ];
+    // Sélection aléatoire parmi les 3 types
+    $fichier_banniere_a_afficher = $liste_fichiers_bannieres[array_rand($liste_fichiers_bannieres)];
+}
 ?>
 
 <?php if (!empty($suggestions_annonces)): ?>
+<!-- AFFICHAGE DES ARTICLES CONNEXES -->
 <div class="conteneur-recherches-connexes">
     <h4 class="titre-connexes"><?= htmlspecialchars($titre_section_connexes) ?></h4>
     <div class="grille-suggestions-objets">
@@ -66,6 +119,17 @@ try {
             </a>
         <?php endforeach; ?>
     </div>
+</div>
+
+<?php elseif ($afficher_banniere_incitation): ?>
+<!-- AFFICHAGE DE LA BANNIÈRE D'INCITATION SÉLECTIONNÉE ALÉATOIREMENT -->
+<div class="conteneur-recherches-connexes">
+    <?php 
+        $chemin_banniere_partielle = __DIR__ . '/' . $fichier_banniere_a_afficher;
+        if (file_exists($chemin_banniere_partielle)) {
+            include $chemin_banniere_partielle;
+        }
+    ?>
 </div>
 <?php endif; ?>
 
@@ -129,6 +193,49 @@ try {
     font-size: 0.8rem;
     color: #16a34a;
     font-weight: bold;
+}
+
+/* Styles pour les bannières textuelles d'incitation */
+.banniere-incitation-connexe {
+    padding: 15px 20px;
+    border-radius: 6px;
+    text-align: center;
+}
+.banniere-incitation-connexe.reg {
+    background: #f1f5f9;
+    border: 1px dashed #94a3b8;
+    color: #334155;
+}
+.banniere-incitation-connexe.sup {
+    background: #f3e8ff;
+    border: 1px dashed #d8b4fe;
+    color: #581c87;
+}
+.banniere-incitation-connexe.prem {
+    background: #eff6ff;
+    border: 1px dashed #bfdbfe;
+    color: #1e3a8a;
+}
+.banniere-texte-interne {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+.btn-incitation {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #0f172a;
+    color: #ffffff;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.8rem;
+    transition: background 0.2s;
+}
+.btn-incitation:hover {
+    background: #2563eb;
 }
 
 @media (max-width: 600px) {

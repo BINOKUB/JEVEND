@@ -2,17 +2,14 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_membre-banniere.php
-// REVISION     : 3.2 - Suppression de l'option 5 jours et ajustement du minimum à 10 jours
-// DESCRIPTION  : Alignement strict du sélecteur de durée sur les campagnes régulières
-//                (Durée minimale : 10 jours). Filtrage des annonces éligibles (≥ 10 jours).
+// REVISION     : 4.1 - Correction stricte du verrouillage du bouton si le slogan est vide
 // =============================================================================
 if (!isset($_SESSION['id_utilisateur'])) { exit(); }
 
-// Tarifs dynamiques pour la bannière Régulière (Minimum forcé à 10 jours)
 $p_reg = $tarifs['reguliere']['prix'] ?? 1.00;
-$m_reg = max(10, (int)($tarifs['reguliere']['min'] ?? 10));
+$m_reg = 10; // Minimum absolu de 10 jours
 
-// FILTRAGE DES ANNONCES ÉLIGIBLES (MÊME PROPRIÉTAIRE + PAS DE DOUBLON + ≥ 10 JOURS DE VALIDITÉ)
+// FILTRAGE DES ANNONCES ÉLIGIBLES (> 10 JOURS DE VALIDITÉ RESTANTE)
 if (isset($annonces_eligibles) && is_array($annonces_eligibles) && count($annonces_eligibles) > 0) {
     try {
         $stmt_bloquees = $bdd->query("SELECT id_annonce FROM jevend_bannieres_actives WHERE id_annonce IS NOT NULL");
@@ -28,15 +25,17 @@ if (isset($annonces_eligibles) && is_array($annonces_eligibles) && count($annonc
                 continue; 
             }
 
-            // Vérification stricte des 10 jours de validité restante avant expiration
+            // Calcul du temps exact restant
             $stmt_check_exp = $bdd->prepare("SELECT DATEDIFF(date_expiration, NOW()) AS jours_restants FROM jevend_annonces WHERE id_annonces = ?");
             $stmt_check_exp->execute([$annonce['id_annonces']]);
             $jours_restants = (int)$stmt_check_exp->fetchColumn();
 
-            if ($jours_restants < 10) {
-                continue; // L'annonce expire trop tôt pour être éligible à un boost
+            // Règle : 10 jours ou moins restants = pas de bannière possible
+            if ($jours_restants <= 10) {
+                continue; 
             }
 
+            $annonce['jours_restants'] = $jours_restants;
             $annonces_nettoyees[] = $annonce;
         }
         $annonces_eligibles = $annonces_nettoyees;
@@ -65,14 +64,9 @@ if (isset($annonces_eligibles) && is_array($annonces_eligibles) && count($annonc
         background-color: #ffffff !important;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
     }
-    .forfait-duree-flex-group { display: flex; gap: 15px; margin-bottom: 20px; width: 100%; box-sizing: border-box; }
     .champ-groupe { margin-bottom: 20px; }
     .champ-groupe label { display: block; font-weight: 600; color: #334155; font-size: 0.9rem; margin-bottom: 6px; }
     .voyant-badge { font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 6px 14px; border-radius: 20px; border: 1px solid #e2e8f0; }
-    @media (max-width: 768px) {
-        .forfait-duree-flex-group { flex-direction: column !important; gap: 15px !important; }
-        .forfait-duree-flex-group .champ-groupe { width: 100% !important; flex: none !important; margin-bottom: 0 !important; }
-    }
 </style>
 
 <div class="form-bloc" style="max-width: 100%; margin-bottom: 30px; padding: 25px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box;">
@@ -84,7 +78,6 @@ if (isset($annonces_eligibles) && is_array($annonces_eligibles) && count($annonc
         Votre bannière s'insérera proprement aux emplacements dédiés du site.
     </p>
 
-    <!-- VOYANT LUMINEUX DE DISPONIBILITÉ (RÉGULIÈRE UNIQUEMENT) -->
     <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 25px; background: #f8fafc; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
         <div class="voyant-badge"><span id="voyant-reguliere">⚪</span> Campagne Régulière (<?= number_format($p_reg, 2, ',', ' ') ?> $ / jour)</div>
     </div>
@@ -96,29 +89,25 @@ if (isset($annonces_eligibles) && is_array($annonces_eligibles) && count($annonc
             <label for="id_annonce">Sélectionnez l'annonce à promouvoir :</label>
             <select name="id_annonce" id="id_annonce" required>
                 <?php if (empty($annonces_eligibles)): ?>
-                    <option value="">-- Aucune annonce éligible (Disponible min. 10 jours avant expiration) --</option>
+                    <option value="">-- Aucune annonce éligible (Requiert plus de 10 jours restants) --</option>
                 <?php else: ?>
                     <option value="">-- Choisissez une annonce éligible --</option>
                     <?php foreach ($annonces_eligibles as $elg): ?>
-                        <option value="<?= $elg['id_annonces'] ?>">
-                            <?= htmlspecialchars($elg['titre_objet_nettoye']) ?> (<?= number_format($elg['prix'], 2, ',', ' ') ?> $)
+                        <option value="<?= $elg['id_annonces'] ?>" data-jours-restants="<?= $elg['jours_restants'] ?>">
+                            <?= htmlspecialchars($elg['titre_objet_nettoye']) ?> (<?= number_format($elg['prix'], 2, ',', ' ') ?> $) — ⏳ <?= $elg['jours_restants'] ?> jours restants
                         </option>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </select>
             <small style="display: block; color: #64748b; font-size: 0.78rem; margin-top: 5px; font-style: italic;">
-                ℹ️ Seules les annonces en ligne ayant au moins 10 jours de validité restante avant leur expiration apparaissent ici.
+                ℹ️ Seules les annonces disposant de plus de 10 jours de validité s'affichent ici. Les options de durée s'adapteront automatiquement.
             </small>
         </div>
 
         <div class="champ-groupe">
-            <label for="duree_jours">Durée d'affichage :</label>
+            <label for="duree_jours">Durée d'affichage (calculée selon le temps restant) :</label>
             <select name="duree_jours" id="duree_jours" required>
-                <option value="">-- Nombre de jours --</option>
-                <option value="10">10 jours</option>
-                <option value="15">15 jours</option>
-                <option value="20">20 jours</option>
-                <option value="30">30 jours</option>
+                <option value="">-- Choisissez d'abord une annonce --</option>
             </select>
         </div>
 
@@ -154,17 +143,54 @@ const blocAlerte = document.getElementById('bloc-alerte-indisponible');
 
 let etatReguliere = 'libre';
 
+// Génération dynamique des paliers selon vos règles exactes
+function mettreAJourDureesDymaniques() {
+    const selectedOption = selectAnnonce.options[selectAnnonce.selectedIndex];
+    const joursRestants = parseInt(selectedOption.getAttribute('data-jours-restants')) || 0;
+
+    selectDuree.innerHTML = '<option value="">-- Nombre de jours --</option>';
+
+    if (joursRestants > 10) {
+        const paliers = [];
+        
+        // 1. Toujours inclure le max exact (ex: 28, 15)
+        paliers.push(joursRestants);
+
+        // 2. Inclure 20 si les jours restants >= 20
+        if (joursRestants >= 20 && !paliers.includes(20)) {
+            paliers.push(20);
+        }
+
+        // 3. Inclure 10 si les jours restants >= 11
+        if (joursRestants >= 11 && !paliers.includes(10)) {
+            paliers.push(10);
+        }
+
+        // Tri décroissant (ex: 28, 20, 10 ou 15, 10)
+        paliers.sort((a, b) => b - a);
+
+        paliers.forEach(jours => {
+            const opt = document.createElement('option');
+            opt.value = jours;
+            opt.textContent = jours + " jours";
+            selectDuree.appendChild(opt);
+        });
+    }
+
+    recalculerPrix();
+    validerFormulaire();
+}
+
 function recalculerPrix() {
     const jours = parseInt(selectDuree.value) || 0;
     const prixParJour = parseFloat(inputForfait.getAttribute('data-prix')) || 1.00;
-    const dureeMin = parseInt(inputForfait.getAttribute('data-min')) || 10;
     let total = 0; 
     let messageErreur = "";
     selectDuree.setCustomValidity("");
 
     if (jours > 0) {
-        if (jours < dureeMin) {
-            messageErreur = `La durée minimale est de ${dureeMin} jours.`;
+        if (jours < 10) {
+            messageErreur = "La durée minimale est de 10 jours.";
         } else {
             total = jours * prixParJour;
         }
@@ -192,12 +218,18 @@ function validerFormulaire() {
     const annonceOk = selectAnnonce.value !== "";
     const forfaitOk = etatReguliere === 'libre';
     const dureeOk = selectDuree.value !== "" && selectDuree.checkValidity();
-    const sloganOk = inputSlogan.value.trim().length >= 5;
+    
+    // Correction : Le slogan ne doit pas être vide (longueur > 0 après suppression des espaces)
+    const sloganOk = inputSlogan.value.trim().length > 0;
 
     if (annonceOk && forfaitOk && dureeOk && sloganOk) {
-        btnSoumettre.disabled = false; btnSoumettre.style.opacity = "1"; btnSoumettre.style.cursor = "pointer";
+        btnSoumettre.disabled = false; 
+        btnSoumettre.style.opacity = "1"; 
+        btnSoumettre.style.cursor = "pointer";
     } else {
-        btnSoumettre.disabled = true; btnSoumettre.style.opacity = "0.5"; btnSoumettre.style.cursor = "not-allowed";
+        btnSoumettre.disabled = true; 
+        btnSoumettre.style.opacity = "0.5"; 
+        btnSoumettre.style.cursor = "not-allowed";
     }
 }
 
@@ -221,10 +253,13 @@ function rafraichirVoyants() {
     .catch(err => console.error('Erreur d\'état du voyant:', err));
 }
 
-selectAnnonce.addEventListener('change', validerFormulaire);
+selectAnnonce.addEventListener('change', mettreAJourDureesDymaniques);
 inputSlogan.addEventListener('input', validerFormulaire);
 inputSlogan.addEventListener('input', function() { document.getElementById('char-count').textContent = this.value.length + " / 120"; });
 selectDuree.addEventListener('change', () => { recalculerPrix(); validerFormulaire(); });
 
-window.addEventListener('DOMContentLoaded', rafraichirVoyants);
+window.addEventListener('DOMContentLoaded', () => {
+    rafraichirVoyants();
+    validerFormulaire(); // Force l'évaluation au chargement initial pour désactiver le bouton proprement
+});
 </script>
