@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_liste_envie.php
-// REVISION : 3.0 - Affichage compact et hiérarchisé par catégories pliées (Accordéon)
+// REVISION : 3.1 - Prise en charge des Prix Flash (Promotions) dans l'affichage compact
 // =============================================================================
 
 // Regroupement des favoris par catégorie
@@ -56,21 +56,36 @@ if (!empty($liste_favoris)) {
                             $statut_annonce = $favori['statut'] ?? 'actif';
                             $est_vendu = ($statut_annonce === 'vendu' || ($favori['statut_vente'] ?? '') === 'vendu');
                             
-                            $prix_actuel = (float)($favori['prix'] ?? 0);
                             $titre_annonce = htmlspecialchars(stripslashes(html_entity_decode($favori['titre_objet_nettoye'] ?? 'Sans titre', ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8');
-                            
-                            // Formattage de la date d'ajout dans les favoris
                             $date_ajout = !empty($favori['date_ajout']) ? date('Y-m-d', strtotime($favori['date_ajout'])) : '';
+
+                            // DÉTECTION DU PRIX FLASH (PROMOTION)
+                            $a_promo = false;
+                            $prix_promo_affiche = 0;
+                            if (!empty($favori['prix_promo']) && !empty($favori['date_fin_promo'])) {
+                                $dt_fin_p = new DateTime($favori['date_fin_promo']);
+                                $dt_now_p = new DateTime();
+                                if ($dt_now_p < $dt_fin_p) {
+                                    $a_promo = true;
+                                    $prix_promo_affiche = (float)$favori['prix_promo'];
+                                }
+                            }
+                            $prix_regulier = (isset($favori['prix']) && $favori['prix'] !== null) ? (float)$favori['prix'] : 0;
                             ?>
 
                             <!-- LIGNE DE L'ITEM COMPACT -->
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; gap: 15px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: <?= $a_promo ? '#fff5f5' : '#f8fafc' ?>; border: 1px solid <?= $a_promo ? '#fca5a5' : '#e2e8f0' ?>; border-radius: 6px; gap: 15px; flex-wrap: wrap;">
                                 
                                 <!-- Infos principales -->
                                 <div style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 2px;">
-                                    <a href="details.php?id=<?= $favori['id_annonces'] ?>" style="font-weight: bold; color: #1e3a8a; text-decoration: none; font-size: 0.95rem;">
-                                        <?= $titre_annonce ?>
-                                    </a>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <a href="details.php?id=<?= $favori['id_annonces'] ?>" style="font-weight: bold; color: #1e3a8a; text-decoration: none; font-size: 0.95rem;">
+                                            <?= $titre_annonce ?>
+                                        </a>
+                                        <?php if ($a_promo): ?>
+                                            <span style="background: #dc2626; color: #ffffff; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; white-space: nowrap;">🔥 PRIX FLASH</span>
+                                        <?php endif; ?>
+                                    </div>
                                     <span style="font-size: 0.78rem; color: #64748b;">
                                         Ajouté le : <?= $date_ajout ?> | Vendeur : <strong><?= htmlspecialchars($favori['vendeur_nom'] ?? 'Inconnu') ?></strong>
                                     </span>
@@ -79,9 +94,18 @@ if (!empty($liste_favoris)) {
                                 <!-- Prix & Statut -->
                                 <div style="display: flex; align-items: center; gap: 15px;">
                                     <div style="text-align: right;">
-                                        <span style="font-weight: bold; color: #16a34a; font-size: 0.95rem;">
-                                            <?= $prix_actuel > 0 ? number_format($prix_actuel, 2, ',', ' ') . ' $' : 'Sur demande' ?>
-                                        </span>
+                                        <?php if ($a_promo): ?>
+                                            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                                                <del style="color: #94a3b8; font-size: 0.8rem;"><?= number_format($prix_regulier, 2, ',', ' ') ?> $</del>
+                                                <span style="font-weight: bold; color: #dc2626; font-size: 1rem;">
+                                                    <?= number_format($prix_promo_affiche, 2, ',', ' ') ?> $
+                                                </span>
+                                            </div>
+                                        <?php else: ?>
+                                            <span style="font-weight: bold; color: #16a34a; font-size: 0.95rem;">
+                                                <?= $prix_regulier > 0 ? number_format($prix_regulier, 2, ',', ' ') . ' $' : 'Sur demande' ?>
+                                            </span>
+                                        <?php endif; ?>
                                     </div>
 
                                     <div>
@@ -93,7 +117,7 @@ if (!empty($liste_favoris)) {
                                     </div>
 
                                     <div>
-                                        <a href="details.php?id=<?= $favori['id_annonces'] ?>" style="background: #2563eb; color: #ffffff; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.8rem; white-space: nowrap;">
+                                        <a href="details.php?id=<?= $favori['id_annonces'] ?>" style="background: <?= $a_promo ? '#dc2626' : '#2563eb' ?>; color: #ffffff; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.8rem; white-space: nowrap;">
                                             👁️ Voir
                                         </a>
                                     </div>
