@@ -186,7 +186,7 @@ try {
 </head>
 <body class="admin-body">
 
-    <?php include 'partials/_nav_publique.php'; ?>
+    <?php include 'partials/_nav_espace_membre_pro.php'; ?>
 
     <div class="profil-conteneur">
         <div class="profil-titre">

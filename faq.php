@@ -158,11 +158,9 @@ if ($db_instance) {
 
     <!-- INCLUSION DE LA BARRE DE NAVIGATION -->
     <?php 
-    if (file_exists('partials/_nav_publique.php')) {
+  
         include_once 'partials/_nav_publique.php';
-    } elseif (file_exists('partials/_header.php')) {
-        include_once 'partials/_header.php';
-    }
+  
     ?>
 
     <main class="faq-container">
