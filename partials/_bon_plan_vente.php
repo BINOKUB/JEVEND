@@ -2,12 +2,12 @@
 /*
 ====================================================
 Fichier       : partials/_bon_plan_vente.php
-Révision      : v1.0
+Révision      : v1.2 - Correction du débordement visuel et de la grille
 Description   : Sous-module Espace Membre - Stratégie Plan de Vente & Prix Spécial Flash
 ====================================================
 */
 ?>
-<div style="background: #ffffff; border-radius: 8px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+<div style="background: #ffffff; border-radius: 8px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 25px; box-sizing: border-box;">
     <h2 style="margin-top: 0; color: #1e3a8a; font-size: 1.4rem; display: flex; align-items: center; gap: 8px;">
         🚀 Stratégie "Bon Plan de Vente" (Vente Flash & Relance Prospects)
     </h2>
@@ -18,7 +18,7 @@ Description   : Sous-module Espace Membre - Stratégie Plan de Vente & Prix Spé
     </p>
 
     <?php if (!empty($liste_annonces)): ?>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; box-sizing: border-box;">
             <?php foreach ($liste_annonces as $item): ?>
                 <?php
                     $id_item       = (int)$item['id_annonces'];
@@ -26,6 +26,7 @@ Description   : Sous-module Espace Membre - Stratégie Plan de Vente & Prix Spé
                     $prix_promo    = !empty($item['prix_promo']) ? (float)$item['prix_promo'] : null;
                     $date_fin      = !empty($item['date_fin_promo']) ? $item['date_fin_promo'] : null;
                     $nb_prospects  = (int)($item['nb_prospects'] ?? 0);
+                    $date_exp      = !empty($item['date_expiration']) ? date('Y-m-d à H:i', strtotime($item['date_expiration'])) : 'Non définie';
 
                     // Vérifier si une promo est actuellement active et non expirée
                     $promo_active = false;
@@ -40,7 +41,8 @@ Description   : Sous-module Espace Membre - Stratégie Plan de Vente & Prix Spé
                         }
                     }
                 ?>
-                <div class="form-bloc" style="background: #f8fafc; border: 1px solid <?= $promo_active ? '#f97316' : '#cbd5e1' ?>; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+                <!-- Retrait de la classe 'form-bloc' et ajout de box-sizing pour éviter le débordement -->
+                <div style="background: #f8fafc; border: 1px solid <?= $promo_active ? '#f97316' : '#cbd5e1' ?>; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; width: 100%;">
                     
                     <div>
                         <!-- En-tête : Catégorie & Badge ID -->
@@ -50,12 +52,17 @@ Description   : Sous-module Espace Membre - Stratégie Plan de Vente & Prix Spé
                         </div>
 
                         <!-- Titre -->
-                        <h3 style="margin: 0 0 10px 0; color: #0f172a; font-size: 1.1rem; font-weight: bold; line-height: 1.3;">
+                        <h3 style="margin: 0 0 4px 0; color: #0f172a; font-size: 1.1rem; font-weight: bold; line-height: 1.3;">
                             <?= htmlspecialchars(stripslashes(html_entity_decode($item['titre_objet_nettoye'] ?? '', ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8') ?>
                         </h3>
 
+                        <!-- DATE D'ÉCHÉANCE SOUS LE TITRE -->
+                        <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 4px;">
+                            ⏳ Échéance : <strong style="color: #334155;"><?= $date_exp ?></strong>
+                        </div>
+
                         <!-- INDICATEUR DE PROSPECTS (ACHETEURS EN LISTE D'ENVIE) -->
-                        <div style="margin-bottom: 15px; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 8px; <?= $nb_prospects > 0 ? 'background-color: #fff7ed; color: #c2410c; border: 1px dashed #ea580c;' : 'background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;' ?>">
+                        <div style="margin-bottom: 15px; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 8px; box-sizing: border-box; <?= $nb_prospects > 0 ? 'background-color: #fff7ed; color: #c2410c; border: 1px dashed #ea580c;' : 'background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;' ?>">
                             <?php if ($nb_prospects > 0): ?>
                                 🔥 <span><strong><?= $nb_prospects ?> prospect(s)</strong> a/ont cet article dans leur Liste d'Envie !</span>
                             <?php else: ?>
@@ -70,7 +77,7 @@ Description   : Sous-module Espace Membre - Stratégie Plan de Vente & Prix Spé
 
                         <!-- ÉTAT ACTIF DU PLAN DE VENTE (SI EN COURS) -->
                         <?php if ($promo_active): ?>
-                            <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+                            <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 12px; margin-bottom: 15px; box-sizing: border-box;">
                                 <div style="color: #991b1b; font-weight: bold; font-size: 0.85rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
                                     🔥 PRIX SPÉCIAL EN COURS
                                 </div>
@@ -87,7 +94,7 @@ Description   : Sous-module Espace Membre - Stratégie Plan de Vente & Prix Spé
                     <!-- BLOC FORMULAIRE D'ACTIVATION / ANNULATION -->
                     <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 10px;">
                         <?php if ($promo_active): ?>
-                            <button onclick="executerPlanDeVente(<?= $id_item ?>, 'annuler')" style="width: 100%; background-color: #64748b; color: #ffffff; border: none; padding: 9px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">
+                            <button onclick="executerPlanDeVente(<?= $id_item ?>, 'annuler')" style="width: 100%; background-color: #64748b; color: #ffffff; border: none; padding: 9px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem; box-sizing: border-box;">
                                 🛑 Annuler la promotion & remettre au prix normal
                             </button>
                         <?php else: ?>
@@ -108,7 +115,7 @@ Description   : Sous-module Espace Membre - Stratégie Plan de Vente & Prix Spé
                                 </div>
                             </div>
 
-                            <button onclick="executerPlanDeVente(<?= $id_item ?>, 'activer')" style="width: 100%; background-color: #2563eb; color: #ffffff; border: none; padding: 9px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">
+                            <button onclick="executerPlanDeVente(<?= $id_item ?>, 'activer')" style="width: 100%; background-color: #2563eb; color: #ffffff; border: none; padding: 9px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s; box-sizing: border-box;">
                                 🚀 Activer le Prix Spécial
                             </button>
                         <?php endif; ?>

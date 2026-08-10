@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_nav_publique.php
-// REVISION : 1.12 - Intégration du menu Hamburger mobile
+// REVISION : 1.11 - Masquage dynamique du module "Je Cherche" pour les comptes PRO
 // =============================================================================
 
 $page_active = basename($_SERVER['PHP_SELF']);
@@ -137,91 +137,61 @@ $est_pro = (isset($_SESSION['type_compte']) && $_SESSION['type_compte'] === 'pro
         white-space: nowrap;
     }
     .btn-nav-deconnexion:hover { color: #f43f5e; }
-
-    /* BOUTON HAMBURGER (Masqué par défaut sur desktop) */
-    .hamburger-btn-publique {
-        display: none;
-        background: none;
-        border: none;
-        color: #ffffff;
-        font-size: 1.8rem;
-        cursor: pointer;
-        padding: 0;
-    }
-    .nav-top-mobile-row {
-        display: contents;
-    }
-
     @media (max-width: 992px) {
         .slogan-nav-pub { display: none; }
     }
-
     @media (max-width: 768px) {
         .barre-navigation-globale {
             flex-direction: column;
-            align-items: stretch;
-            padding: 12px 15px;
+            gap: 12px;
+            padding: 15px;
+            text-align: center;
         }
-        .nav-top-mobile-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
+        .nav-gauche-publique {
+            flex-direction: column;
+            gap: 8px;
         }
         .logo-nav-img { max-height: 38px; }
-        .hamburger-btn-publique {
-            display: block;
-        }
-        /* Menu caché par défaut sur mobile, s'ouvre avec .ouvert */
         .liens-session-zone {
-            display: none;
             flex-direction: column;
             gap: 10px;
             width: 100%;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #1e293b;
-            box-sizing: border-box;
-            text-align: center;
         }
-        .liens-session-zone.ouvert {
-            display: flex;
-        }
-        .liens-session-zone a, .liens-session-zone span {
+        .liens-session-zone a {
             width: 100%;
             box-sizing: border-box;
             text-align: center;
+            padding: 8px 14px;
         }
     }
 </style>
 
 <nav class="barre-navigation-globale">
-    <div class="nav-top-mobile-row">
-        <div class="nav-gauche-publique">
-            <a href="index.php" class="logo-nav-container">
-                <img src="assets/LOGO_JEVEND-COM.jpeg" alt="jevend.com" class="logo-nav-img">
-            </a>
-            <span class="slogan-nav-pub">« Premier arrivé, premier vendu »</span>
-        </div>
-        <button class="hamburger-btn-publique" onclick="toggleMenuPublique()" aria-label="Menu">☰</button>
+    <div class="nav-gauche-publique">
+        <a href="index.php" class="logo-nav-container">
+            <img src="assets/LOGO_JEVEND-COM.jpeg" alt="jevend.com" class="logo-nav-img">
+        </a>
+        <span class="slogan-nav-pub">« Premier arrivé, premier vendu »</span>
     </div>
 
-    <div class="liens-session-zone" id="menu-liens-publique">
+    <div class="liens-session-zone">
         <?php if ($page_active !== 'search.php'): ?>
             <a href="search.php" class="btn-nav-recherche" title="Rechercher une annonce">🔍</a>
         <?php endif; ?>
 
         <a href="faq.php" class="btn-nav-faq <?= ($page_active === 'faq.php') ? 'active' : '' ?>" title="Foire Aux Questions">F.A.Q.</a>
 
+        <!-- MASQUÉ POUR LES PROS : LA ZONE JE CHERCHE -->
         <?php if (!$est_pro): ?>
             <a href="zone_cherche.php" class="btn-nav-zone-cherche <?= ($page_active === 'zone_cherche.php') ? 'active' : '' ?>" title="La Zone Je Cherche">🎯 Je Cherche</a>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['id_utilisateur'])): ?>
             <span style="color: #94a3b8; font-size: 0.85rem; display: inline-block; white-space: nowrap;">
-                👤 <a href="." style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #ffffff;" title="Modifier mes informations"><strong><?= htmlspecialchars($_SESSION['nom_entreprise'] ?? $_SESSION['nom'] ?? 'Membre') ?></strong></a>
+                👤 <a href="." style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #ffffff;" title="Modifier mes informations"><strong><?= htmlspecialchars($_SESSION['nom_entreprise'] ?? $_SESSION['nom'] ?? 'Membre') ?>....</strong></a>
             </span>
 
+            <!-- MASQUÉ POUR LES PROS : MES RECHERCHES -->
             <?php if (!$est_pro): ?>
                 <a href="mes_recherches.php" class="btn-nav-mes-recherches <?= ($page_active === 'mes_recherches.php') ? 'active' : '' ?>" title="Mes recherches Je Cherche">📋 Mes recherches</a>
             <?php endif; ?>
@@ -246,10 +216,3 @@ $est_pro = (isset($_SESSION['type_compte']) && $_SESSION['type_compte'] === 'pro
         <?php endif; ?>
     </div>
 </nav>
-
-<script>
-function toggleMenuPublique() {
-    const menu = document.getElementById('menu-liens-publique');
-    menu.classList.toggle('ouvert');
-}
-</script>

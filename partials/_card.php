@@ -82,7 +82,7 @@ if (!empty($annonce['prix_promo']) && !empty($annonce['date_fin_promo'])) {
     </div>
 
     <!-- AJOUT DU MODULE FOMO -->
-    <?php include 'partials/_indicateur_fomo.php'; ?>
+    <?php include 'partials/_indicateur_fomo.php';  // POUR LES LISTE D'ENVIE'?>
 
     <!-- MODULE DES STATISTIQUES ENTIÈREMENT RESTAURÉ -->
     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
