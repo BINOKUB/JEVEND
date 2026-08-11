@@ -73,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$quota_global_atteint && !$quota_u
             }
 
             $bdd->commit();
+            include 'admin_modules/_admin_add_new_quota_annonce.php';
             $succes = "Votre annonce avec " . $images_enregistrees . " photo(s) a été publiée avec succès !";
             $titre_objet_nettoye = $description_service = $prix_brut = "";
             
