@@ -1,9 +1,8 @@
 <?php
 // =============================================================================
 // SCRIPT      : details.php
-// REVISION    : 1.9 - Intégration du Cœur Négociateur (Signal de révision de prix)
-// DESCRIPTION : Ajout de l'action directe "Liste d'Envie" pour permettre à l'acheteur
-//               d'interpeller le vendeur pour une éventuelle baisse de prix.
+// REVISION    : 2.0 - Intégration du bouton Chat conditionné (1 annonce active)
+// DESCRIPTION : Ajout du 3e bouton de contact "CHAT!" si l'utilisateur est éligible.
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -17,6 +16,22 @@ if ($id_annonce <= 0) {
     die("Annonce introuvable ou invalide.");
 }
 
+// Vérification de l'éligibilité au chat (Avoir au moins 1 annonce active)
+$membre_peut_chatter = false;
+if ($id_utilisateur_connecte) {
+    try {
+        $stmt_eligible = $bdd->prepare("
+            SELECT COUNT(*) 
+            FROM jevend_annonces 
+            WHERE id_utilisateur = ? AND statut = 'actif'
+        ");
+        $stmt_eligible->execute([$id_utilisateur_connecte]);
+        if ($stmt_eligible->fetchColumn() > 0) {
+            $membre_peut_chatter = true;
+        }
+    } catch (PDOException $e) { }
+}
+
 $id_ville_acheteur = null;
 if ($id_utilisateur_connecte) {
     try {
@@ -27,7 +42,6 @@ if ($id_utilisateur_connecte) {
 }
 
 try {
-    // EXTRACTION DE L'ANNONCE AVEC DÉTECTION DU STATUT FAVORIS ET COMPTEUR D'ENVIES
     $sql_annonce = "
         SELECT a.*, u.nom AS vendeur_nom, u.cellulaire AS vendeur_tel, u.id_ville AS vendeur_ville_id, v.nom_ville AS vendeur_ville_nom,
                IF(le.id_envie IS NOT NULL, 1, 0) AS est_favoris,
@@ -88,7 +102,6 @@ if ($maintenant > $date_expire) {
     }
 }
 
-// DÉTECTION EN DIRECT DE LA VENTE FLASH
 $a_promo = false;
 $prix_promo_affiche = 0;
 $temps_promo_texte = "";
@@ -109,7 +122,6 @@ if (!empty($annonce['prix_promo']) && !empty($annonce['date_fin_promo'])) {
     }
 }
 
-// DÉCODAGE DES STRINGS
 $titre_propre = htmlspecialchars(stripslashes(html_entity_decode($annonce['titre_objet_nettoye'], ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8');
 $description_propre = stripslashes(html_entity_decode($annonce['description_service'] ?? "Aucune description fournie.", ENT_QUOTES, 'UTF-8'));
 ?>
@@ -120,65 +132,7 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $titre_propre ?> — jevend.com</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .vitrine-conteneur { max-width: 1000px; margin: 30px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .galerie-zone { display: flex; flex-direction: column; gap: 15px; }
-        .affichage-principal { width: 100%; height: 400px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 10px; box-sizing: border-box; position: relative; }
-        .affichage-principal img { width: 100%; height: 100%; object-fit: contain; }
-        
-        .vignettes-ligne { display: flex; flex-wrap: wrap; gap: 10px; padding-bottom: 5px; }
-        .vignette-item { width: 80px; height: 80px; background-color: #ffffff; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 2px; box-sizing: border-box; transition: border-color 0.15s ease; }
-        .vignette-item:hover, .vignette-item.active { border-color: #2563eb; }
-        .vignette-item img { width: 100%; height: 100%; object-fit: contain; }
-
-        .infos-zone { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; display: flex; flex-direction: column; }
-        .vitrine-vendeur { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: #1e3a8a; font-weight: bold; margin-bottom: 10px; }
-        .vitrine-meta { font-size: 0.85rem; color: #64748b; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
-        .vitrine-titre { font-size: 1.6rem; font-weight: bold; color: #1e293b; margin: 0 0 15px 0; line-height: 1.3; }
-        .vitrine-prix { font-size: 1.8rem; font-weight: bold; color: #16a34a; margin-bottom: 20px; }
-        .vitrine-prix-promo { font-size: 2rem; font-weight: bold; color: #dc2626; margin-bottom: 20px; }
-        .vitrine-description { font-size: 1rem; color: #334155; line-height: 1.6; margin-bottom: 25px; white-space: pre-line; }
-        
-        .boite-urgence { background: #fff7ed; border: 1px dashed #f97316; border-radius: 6px; padding: 12px; margin-bottom: 20px; font-size: 0.9rem; color: #c2410c; }
-        .boite-promo-flash { background: #dc2626; color: #ffffff; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-weight: bold; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; }
-
-        /* BOUTON CŒUR NÉGOCIATEUR */
-        .btn-interpeller-vendeur {
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px 14px;
-            border: 1px solid #ea580c;
-            background-color: #ffffff;
-            color: #c2410c;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 0.88rem;
-            transition: all 0.2s ease;
-        }
-        .btn-interpeller-vendeur:hover {
-            background-color: #fff7ed;
-            border-color: #c2410c;
-        }
-
-        .zone-contact-direct { display: flex; gap: 10px; margin-bottom: 15px; margin-top: auto; }
-        .btn-contact-action { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; color: #ffffff; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; text-align: center; transition: background 0.15s ease; }
-        .btn-appel { background-color: #10b981; }
-        .btn-appel:hover { background-color: #059669; }
-        .btn-texto { background-color: #059669; }
-        .btn-texto:hover { background-color: #047857; }
-
-        .btn-retour { display: inline-block; background: #f1f5f9; color: #475569; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; text-align: center; transition: background 0.15s ease; }
-        .btn-retour:hover { background: #e2e8f0; }
-
-        .ribbon-vendu { position: absolute; top: 15px; left: 15px; background-color: #dc2626; color: #ffffff; padding: 6px 16px; font-size: 1.1rem; font-weight: bold; border-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 1px; z-index: 10; }
-
-        @media (max-width: 768px) { .vitrine-conteneur { grid-template-columns: 1fr; gap: 20px; margin: 15px auto; } .affichage-principal { height: 280px; } .zone-contact-direct { margin-top: 15px; } }
-    </style>
+    <link rel="stylesheet" href="details.css">
 </head>
 <body class="admin-body">
 
@@ -243,7 +197,6 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
                     <div style="font-size: 0.85rem; opacity: 0.8;">Soyez le premier à ajouter cet objet à vos favoris !</div>
                 <?php endif; ?>
 
-                <!-- BOUTON NÉGOCIATEUR CŒUR -->
                 <button id="btn-favoris-details" class="btn-interpeller-vendeur" data-id="<?= $id_annonce ?>">
                     <span id="coeur-icone"><?= ($annonce['est_favoris'] == 1) ? '❤️' : '🤍' ?></span>
                     <span id="coeur-texte"><?= ($annonce['est_favoris'] == 1) ? 'Cet objet est dans votre Liste d\'Envie' : 'Interpeller le vendeur (Demander une baisse de prix)' ?></span>
@@ -252,7 +205,6 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
 
             <h2 class="vitrine-titre"><?= $titre_propre ?></h2>
 
-            <!-- AFFICHAGE DU PRIX (RÉGULIER OU PROMO FLASH) -->
             <?php if ($a_promo): ?>
                 <div class="vitrine-prix-promo">
                     <del style="color: #94a3b8; font-size: 1.3rem; margin-right: 10px; font-weight: normal;">
@@ -266,27 +218,32 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
 
             <div class="vitrine-description"><?= nl2br(htmlspecialchars($description_propre, ENT_QUOTES, 'UTF-8')) ?></div>
 
-            <!-- BLOC DES BOUTONS DE CONTACT DIRECT -->
+            <!-- BLOC DES BOUTONS DE CONTACT DIRECT ET CHAT -->
             <?php if ($annonce['statut_vente'] === 'vendu'): ?>
                 <div style="background-color: #fef2f2; border: 1px solid #fee2e2; padding: 15px; border-radius: 6px; text-align: center; color: #991b1b; font-weight: bold; margin-bottom: 15px;">
                     🔕 Les options d'appels et de messages ont été désactivées car cet objet a été vendu.
                 </div>
-            <?php elseif (!empty($annonce['vendeur_tel'])): ?>
-                <div class="zone-contact-direct">
-                    <a href="tel:<?= preg_replace('/[^0-9]/', '', $annonce['vendeur_tel']) ?>" class="btn-contact-action btn-appel" onclick="comptabiliserClic()">
-                        📞 Appeler le vendeur
-                    </a>
-                    <a href="sms:<?= preg_replace('/[^0-9]/', '', $annonce['vendeur_tel']) ?>?body=Bonjour, je suis intéressé par votre annonce &quot;<?= rawurlencode(stripslashes(html_entity_decode($annonce['titre_objet_nettoye'], ENT_QUOTES, 'UTF-8'))) ?>&quot; sur jevend.com !" class="btn-contact-action btn-texto" onclick="comptabiliserClic()">
-                        💬 Envoyer un texto
-                    </a>
-                </div>
             <?php else: ?>
-                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; font-size: 0.85rem; color: #64748b; text-align: center; margin-bottom: 15px; font-style: italic;">
-                    📞 Aucun numéro de cellulaire renseigné par le vendeur pour cette vitrine.
+                <div class="zone-contact-direct" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <?php if (!empty($annonce['vendeur_tel'])): ?>
+                        <a href="tel:<?= preg_replace('/[^0-9]/', '', $annonce['vendeur_tel']) ?>" class="btn-contact-action btn-appel" onclick="comptabiliserClic()">
+                            📞 Appeler le vendeur
+                        </a>
+                        <a href="sms:<?= preg_replace('/[^0-9]/', '', $annonce['vendeur_tel']) ?>?body=Bonjour, je suis intéressé par votre annonce &quot;<?= rawurlencode(stripslashes(html_entity_decode($annonce['titre_objet_nettoye'], ENT_QUOTES, 'UTF-8'))) ?>&quot; sur jevend.com !" class="btn-contact-action btn-texto" onclick="comptabiliserClic()">
+                            💬 Envoyer un texto
+                        </a>
+                    <?php endif; ?>
+
+                    <!-- BOUTON CHAT CONDITIONNÉ (Uniquement si le membre a au moins 1 annonce active) -->
+                    <?php if ($membre_peut_chatter && $annonce['id_utilisateur'] != $id_utilisateur_connecte): ?>
+                        <a href="chat_membre.php?id_annonce=<?= $id_annonce ?>" class="btn-contact-action" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; display: inline-block; text-align: center;">
+                            💬 CHAT!
+                        </a>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
 
-            <a href="index.php" class="btn-retour">← Retour au fil d'actualité</a>
+            <a href="index.php" class="btn-retour" style="margin-top: 15px;">← Retour au fil d'actualité</a>
         </div>
     </div>
 
@@ -305,7 +262,6 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
             .catch(error => console.error('Erreur stat:', error));
     }
 
-    // --- GESTION DU CŒUR NÉGOCIATEUR SUR LA FICHE DÉTAILLÉE ---
     const btnFavorisDetails = document.getElementById('btn-favoris-details');
     if (btnFavorisDetails) {
         btnFavorisDetails.addEventListener('click', function() {
@@ -319,7 +275,7 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
                     if (data.status === 'ajoute') {
                         document.getElementById('coeur-icone').textContent = '❤️';
                         document.getElementById('coeur-texte').textContent = 'Cet objet est dans votre Liste d\'Envie';
-                        location.reload(); // Actualise le compteur d'acheteurs en direct
+                        location.reload();
                     } else if (data.status === 'retire') {
                         document.getElementById('coeur-icone').textContent = '🤍';
                         document.getElementById('coeur-texte').textContent = 'Interpeller le vendeur (Demander une baisse de prix)';
