@@ -77,7 +77,7 @@ $maintenant = new DateTime();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Zone Je Cherche — jevend.com</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="zone_recherche.css">
+    <link rel="stylesheet" href="zone_recherche.css?V=1">
 </head>
 <body class="admin-body">
 

@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : poster_recherche.php
-// REVISION : 1.2 - Formulaire persistant (Sticky form) + Traitement d'image GD
+// REVISION : 1.3 - Nettoyage CSS complet, 100% modulaire (poster_recherche.css)
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -170,90 +170,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_poster_recherc
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poster une demande — jevend.com</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        .conteneur-form-cherche {
-            max-width: 650px;
-            margin: 30px auto;
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-top: 5px solid #f59e0b;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .entete-form-cherche {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .entete-form-cherche h2 {
-            margin: 0 0 6px 0;
-            color: #0f172a;
-            font-size: 1.6rem;
-        }
-        .entete-form-cherche p {
-            margin: 0;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-        .grille-champs-cherche {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .champ-largeur-totale {
-            grid-column: span 2;
-        }
-        .champ-groupe-cherche {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 15px;
-        }
-        .champ-groupe-cherche label {
-            font-weight: bold;
-            font-size: 0.88rem;
-            color: #1e293b;
-        }
-        .champ-groupe-cherche input, 
-        .champ-groupe-cherche select, 
-        .champ-groupe-cherche textarea {
-            padding: 10px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.15s ease;
-        }
-        .champ-groupe-cherche input:focus, 
-        .champ-groupe-cherche select:focus, 
-        .champ-groupe-cherche textarea:focus {
-            border-color: #f59e0b;
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
-        }
-        .btn-soumettre-cherche {
-            width: 100%;
-            background-color: #f59e0b;
-            color: #0f172a;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.15s ease;
-            margin-top: 10px;
-        }
-        .btn-soumettre-cherche:hover {
-            background-color: #d97706;
-            color: #ffffff;
-        }
-        @media (max-width: 600px) {
-            .grille-champs-cherche { grid-template-columns: 1fr; }
-            .champ-largeur-totale { grid-column: span 1; }
-            .conteneur-form-cherche { padding: 20px 15px; margin: 15px; }
-        }
-    </style>
+    <!-- FEUILLE DE STYLE UNIQUE ET MODULAIRE -->
+    <link rel="stylesheet" href="poster_recherche.css">
 </head>
 <body class="admin-body">
 
