@@ -245,3 +245,62 @@
             .vignette-apercu-ligne { width: 100%; height: 180px; }
             .btn-repondre-compact { width: 100%; }
         }
+
+
+/* CORRECTIONS SPÉCIALES MOBILE - ZONE CHERCHE */
+@media (max-width: 768px) {
+    /* 1. Sécurité et marges pour occuper toute la largeur avec une petite marge propre (10px) */
+    .barre-filtres-cherche,
+    .flux-compact-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+        box-sizing: border-box !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* 2. Organisation de la barre de filtres pour qu'elle respire sur cellulaire */
+    .barre-filtres-cherche {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin-top: -15px;
+        border-radius: 0 0 8px 8px;
+        border-left: none;
+        border-right: none;
+    }
+
+    .barre-filtres-cherche input,
+    .barre-filtres-cherche select,
+    .btn-filtre-submit {
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* 3. Ajustement de l'entête des cartes "Je Cherche" pour éviter l'écrasement */
+    .ligne-entete-bar {
+        padding: 10px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .ligne-infos-principales {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    /* 4. Alignement propre des métadonnées (ville, budget) sur mobile */
+    .ligne-meta-droite {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 6px;
+    }
+}
