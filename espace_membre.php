@@ -125,7 +125,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Espace - jevend.com</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="style_membre.css?v=1.1">
+    <link rel="stylesheet" href="style_membre.css?v=3">
 </head>
 <body class="admin-body">
 <?php include 'partials/_nav_membre.php'; ?>
@@ -140,6 +140,8 @@ try {
                 <button class="onglet-btn actif" onclick="changerOnglet('vitrines')">📋 Mes Vitrines</button>
                 <button class="onglet-btn" onclick="changerOnglet('bon-plan')">🚀 Bon Plan de Vente</button>
                 <button class="onglet-btn" onclick="changerOnglet('magasin')">🏪 Mon Magasin</button>
+                <button class="onglet-btn" onclick="changerOnglet('stats')">📊 Stats sur Annonce</button>
+           
             </div>
             <a href="index.php" class="btn-retour-fil">🌐 Fil d'actualité public</a>
         </div>
@@ -154,8 +156,13 @@ try {
 
         <!-- INCLUSION DE L'ONGLET 3 : MON MAGASIN -->
         <?php include 'partials/_espace_membre_mon_magasin.php'; ?>
-
     </div>
+
+        <div id="onglet-stats" class="contenu-onglet">
+            <?php include 'partials/histograme_membre.php'; ?>
+        </div>
+
+
 
     <script>
     function changerOnglet(nomOnglet) {
@@ -171,6 +178,9 @@ try {
         } else if (nomOnglet === 'magasin') {
             document.querySelector('.onglets-navigation button:nth-child(3)').classList.add('actif');
             document.getElementById('onglet-magasin').classList.add('actif');
+        } else if (nomOnglet === 'stats') {
+            document.querySelector('.onglets-navigation button:nth-child(4)').classList.add('actif');
+            document.getElementById('onglet-stats').classList.add('actif');
         }
     }
 

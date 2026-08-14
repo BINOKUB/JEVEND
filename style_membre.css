@@ -127,6 +127,56 @@ details[open] .accordeon-icon {
 }
 
 @media (max-width: 768px) {
-    .admin-conteneur { padding-left: 10px !important; padding-right: 10px !important; margin-top: 15px !important; }
-    .barre-outils-membre { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .admin-conteneur { 
+        padding-left: 10px !important; 
+        padding-right: 10px !important; 
+        margin-top: 15px !important; 
+        overflow-x: hidden !important;
+    }
+    
+    .barre-outils-membre { 
+        flex-direction: column; 
+        gap: 12px; 
+        align-items: center; /* Centre les éléments sur mobile */
+    }
+
+    .onglets-navigation {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 2 onglets par ligne sur mobile pour bien respirer */
+        gap: 8px;
+        width: 100%;
+    }
+
+    .onglet-btn {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .btn-retour-fil {
+        width: 100%;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+}
+
+
+/* BLOCAGE DU SCROLL HORIZONTAL SUR MOBILE SANS DÉFAIRE LE VISUEL */
+@media (max-width: 768px) {
+    html, body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden !important;
+    }
+    
+    .admin-conteneur {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
 }
