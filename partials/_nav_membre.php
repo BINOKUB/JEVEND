@@ -1,8 +1,22 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_nav_membre.php
-// REVISION : 1.7 - Intégration du menu Hamburger mobile pour l'espace membre
+// REVISION : 1.8 - Intégration du badge de notification de Tchat non lu
 // =============================================================================
+require_once __DIR__ . '/../chat_delete_membre.php'; // Inclus la purge automatique à la volée
+
+$nb_chat_non_lus = 0;
+if (isset($_SESSION['id_utilisateur']) && isset($bdd)) {
+    try {
+        $stmt_chat_notif = $bdd->prepare("
+            SELECT COUNT(*) 
+            FROM jevend_chat 
+            WHERE id_destinataire = ? AND lu = 0
+        ");
+        $stmt_chat_notif->execute([(int)$_SESSION['id_utilisateur']]);
+        $nb_chat_non_lus = (int)$stmt_chat_notif->fetchColumn();
+    } catch (PDOException $e) { }
+}
 ?>
 <style>
     .nav-membre-responsive {
@@ -67,6 +81,24 @@
     }
     .btn-nav-publier:hover { background-color: #1d4ed8; }
 
+    /* BADGE NOTIFICATION CHAT */
+    .badge-notif-chat {
+        background-color: #ef4444;
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 900;
+        padding: 2px 7px;
+        border-radius: 10px;
+        text-decoration: none;
+        margin-right: 6px;
+        display: inline-block;
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+        transition: transform 0.15s ease;
+    }
+    .badge-notif-chat:hover {
+        transform: scale(1.1);
+    }
+
     /* BOUTON HAMBURGER MEMBRE */
     .hamburger-btn-membre {
         display: none;
@@ -107,7 +139,6 @@
         }
         .logo-membre-img { max-height: 38px; }
 
-        /* Menu masqué par défaut sur mobile, affiché via .ouvert */
         .nav-membre-liens-mobile {
             display: none;
             flex-direction: column;
@@ -169,10 +200,26 @@
             <?php endif; ?>
         </div>
         
-        <div class="nav-membre-droite">
-            <span style="color: #94a3b8;">Bonjour, <a href="edit_membre.php" style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #ffffff;" title="Modifier mes informations"><strong><?= htmlspecialchars($_SESSION['nom'] ?? '') ?></strong></a></span>
-            <a href="deconnexion.php" style="margin-left: 20px; color: #94a3b8; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: color 0.15s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">Déconnexion</a>
-        </div>
+       <div class="nav-membre-droite">
+    <!-- LIEN ACCÈS DIRECT AU CENTRE DE MESSAGERIE -->
+    <a href="mes_conversations.php" style="color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-right: 15px; transition: color 0.15s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'"> &nbsp;&nbsp; 💬 </a>
+
+    <span style="color: #94a3b8;">
+        Bonjour, 
+        <?php if ($nb_chat_non_lus > 0): ?>
+            <a href="mes_conversations.php" class="badge-notif-chat" title="Vous avez <?= $nb_chat_non_lus ?> message(s) non lu(s)">
+                <?= $nb_chat_non_lus ?>
+            </a>
+        <?php endif; ?>
+        <a href="edit_membre.php" style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #ffffff;" title="Modifier mes informations">
+            <strong><?= htmlspecialchars($_SESSION['nom'] ?? '') ?></strong>
+        </a>
+    </span>
+    <a href="deconnexion.php" style="margin-left: 20px; color: #94a3b8; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: color 0.15s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">Déconnexion</a>
+</div>
+
+
+
     </div>
 </div>
 
