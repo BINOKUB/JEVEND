@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // SCRIPT      : connexion.php
-// REVISION    : 4.0 - Interface d'affichage pure (Séparation de connexion_execute.php)
+// REVISION    : 4.1 - Persistance mobile (localStorage) + Saisie auto du code OTP
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -23,13 +23,11 @@ if (isset($_SESSION['id_utilisateur'])) {
     exit();
 }
 
-// Capturation de l'URL de retour
 $redirect_cible = $_GET['redirect'] ?? $_POST['redirect'] ?? $_SESSION['redirect_after_login'] ?? '';
 if (!empty($redirect_cible)) {
     $_SESSION['redirect_after_login'] = $redirect_cible;
 }
 
-// Traitement des notifications de session
 $erreur = $_SESSION['erreur_connexion'] ?? '';
 $succes = $_SESSION['succes_connexion'] ?? '';
 unset($_SESSION['erreur_connexion'], $_SESSION['succes_connexion']);
@@ -79,7 +77,7 @@ $email_saisi = $_SESSION['temp_email_connexion'] ?? '';
                 <h3 style="margin-top:0; color: #0f172a;">1. Demander une clé d'accès</h3>
                 <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5;">Entrez votre adresse courriel. Si vous êtes inscrit, un code d'accès temporaire valide pendant 15 minutes vous sera instantanément envoyé.</p>
                 
-                <form action="connexion_execute.php" method="POST" style="margin-top: 20px;">
+                <form action="connexion_execute.php" method="POST" style="margin-top: 20px;" onsubmit="sauvegarderCourrielLocal()">
                     <input type="hidden" name="action" value="demande_code">
                     
                     <div class="champ-groupe">
@@ -93,7 +91,7 @@ $email_saisi = $_SESSION['temp_email_connexion'] ?? '';
                 </form>
             </div>
 
-            <!-- ÉTAPE 2 : VALIDATION DU CODE (DÉSACTIVÉ PAR DÉFAUT SI PAS DE COURRIEL ACTIF) -->
+            <!-- ÉTAPE 2 : VALIDATION DU CODE -->
             <div class="form-bloc" style="flex: 1; background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-radius: 8px; border-top: 4px solid #2563eb; box-sizing: border-box;">
                 <h3 style="margin-top:0; color: #2563eb;">2. Saisir le code de sécurité</h3>
                 
@@ -106,17 +104,18 @@ $email_saisi = $_SESSION['temp_email_connexion'] ?? '';
                     
                     <div class="champ-groupe">
                         <label style="font-weight: bold; color: #0f172a;">Courriel de validation actif :</label>
-                        <div style="background-color: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 0.9rem; color: #334155; overflow-x: auto;">
+                        <div id="affichage_courriel_actif" style="background-color: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 0.9rem; color: #334155; overflow-x: auto;">
                             <?= !empty($email_saisi) ? htmlspecialchars($email_saisi) : '<i>Aucun courriel spécifié pour le moment</i>' ?>
                         </div>
                     </div>
 
                     <div class="champ-groupe" style="margin-top: 15px;">
                         <label for="code_securite" style="color: #2563eb; font-weight: bold;">Code secret à 6 chiffres :</label>
-                        <input type="text" name="code_securite" id="code_securite" maxlength="6" placeholder="Ex: 584920" required autocomplete="off" <?= empty($email_saisi) ? 'disabled' : '' ?> style="width: 100%; padding: 12px; font-size: 1.2rem; font-weight: bold; text-align: center; letter-spacing: 4px; box-sizing: border-box; border: 2px solid #2563eb; border-radius: 4px; color: #2563eb; background-color: #f8fafc;">
+                        <!-- ATTRIBUTS MOBILIERS AMÉLIORÉS (one-time-code / numeric) -->
+                        <input type="text" name="code_securite" id="code_securite" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="Ex: 584920" required autocomplete="one-time-code" <?= empty($email_saisi) ? 'disabled' : '' ?> style="width: 100%; padding: 12px; font-size: 1.2rem; font-weight: bold; text-align: center; letter-spacing: 4px; box-sizing: border-box; border: 2px solid #2563eb; border-radius: 4px; color: #2563eb; background-color: #f8fafc;">
                     </div>
                     
-                    <button type="submit" class="btn-connexion-etape2" <?= empty($email_saisi) ? 'disabled' : '' ?> style="margin-top: 15px; width: 100%; padding: 12px; background-color: <?= empty($email_saisi) ? '#cbd5e1' : '#2563eb' ?>; color: #ffffff; border: none; border-radius: 4px; font-weight: bold; cursor: <?= empty($email_saisi) ? 'not-allowed' : 'pointer' ?>;">
+                    <button type="submit" id="btnConfirm" class="btn-connexion-etape2" <?= empty($email_saisi) ? 'disabled' : '' ?> style="margin-top: 15px; width: 100%; padding: 12px; background-color: <?= empty($email_saisi) ? '#cbd5e1' : '#2563eb' ?>; color: #ffffff; border: none; border-radius: 4px; font-weight: bold; cursor: <?= empty($email_saisi) ? 'not-allowed' : 'pointer' ?>;">
                         🔑 Confirmer et entrer
                     </button>
                 </form>
@@ -129,5 +128,31 @@ $email_saisi = $_SESSION['temp_email_connexion'] ?? '';
         </div>
     </div>
 
+    <script>
+    // 1. Sauvegarde du courriel dans la mémoire locale du téléphone lors de l'envoi
+    function sauvegarderCourrielLocal() {
+        const email = document.getElementById('courriel_demande').value.trim();
+        if (email) {
+            localStorage.setItem('jevend_courriel_attente', email);
+        }
+    }
+
+    // 2. Restauration automatique si le navigateur mobile se rafraîchit en revenant
+    window.addEventListener('DOMContentLoaded', () => {
+        const inputCode = document.getElementById('code_securite');
+        const btnConfirm = document.getElementById('btnConfirm');
+        const affichageEmail = document.getElementById('affichage_courriel_actif');
+        const courrielSauvegarde = localStorage.getItem('jevend_courriel_attente');
+
+        // Si le serveur n'a pas transmis le courriel en PHP mais qu'il est en mémoire locale
+        if (courrielSauvegarde && (!affichageEmail.innerText || affichageEmail.innerText.includes('Aucun courriel'))) {
+            affichageEmail.innerText = courrielSauvegarde;
+            inputCode.disabled = false;
+            btnConfirm.disabled = false;
+            btnConfirm.style.backgroundColor = '#2563eb';
+            btnConfirm.style.cursor = 'pointer';
+        }
+    });
+    </script>
 </body>
 </html>
