@@ -1,14 +1,11 @@
 <?php
 // =============================================================================
-// SCRIPT : inscription.php
-// REVISION : 3.0 - Ajout des champs Adresse Pro & Site Web pour le profil Commercial
-// NOM DU SCRIPT : inscription.php
+// SCRIPT      : inscription.php
+// REVISION    : 4.0 - Interface pure + Rappel d'oubli dynamique + Bouton verrouillé
 // =============================================================================
 session_start();
 require_once 'config.php';
-date_default_timezone_set('America/Montreal');
 
-// Si l'utilisateur est déjà connecté, on le redirige selon son type de compte
 if (isset($_SESSION['id_utilisateur'])) {
     if (isset($_SESSION['type_compte']) && $_SESSION['type_compte'] === 'pro') {
         header('Location: espace_membre_pro.php');
@@ -18,140 +15,17 @@ if (isset($_SESSION['id_utilisateur'])) {
     exit();
 }
 
-$erreur = "";
-$succes = "";
+$erreur = $_SESSION['erreur_inscription'] ?? '';
+unset($_SESSION['erreur_inscription']);
 
-// 1. EXTRACTION DES VILLES POUR LE SÉLECTEUR DYNAMIQUE
+$saisie = $_SESSION['form_inscription'] ?? [];
+
 try {
     $stmt_villes = $bdd->query("SELECT id_ville, nom_ville FROM jevend_villes ORDER BY nom_ville ASC");
     $villes = $stmt_villes->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $villes = [];
     $erreur = "Impossible de charger la liste des villes.";
-}
-
-// 2. TRAITEMENT DE L'INSCRIPTION
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nom            = trim($_POST['nom'] ?? '');
-    $courriel       = trim($_POST['courriel'] ?? '');
-    $cellulaire     = trim($_POST['cellulaire'] ?? '');
-    $id_ville       = (int)($_POST['id_ville'] ?? 0);
-    $type_compte    = (isset($_POST['type_compte']) && $_POST['type_compte'] === 'pro') ? 'pro' : 'particulier';
-    
-    // Champs spécifiques PRO
-    $nom_entreprise = trim($_POST['nom_entreprise'] ?? '');
-    $telephone_pro  = trim($_POST['telephone_pro'] ?? '');
-    $adresse_pro    = trim($_POST['adresse_pro'] ?? '');
-    $site_web       = trim($_POST['site_web'] ?? '');
-    $neq            = trim($_POST['neq'] ?? '');
-
-    // Formater l'URL du site web avec https:// si nécessaire
-    if (!empty($site_web) && !preg_match("~^(?:f|ht)tps?://~i", $site_web)) {
-        $site_web = "https://" . $site_web;
-    }
-
-    // Validations de base
-    if (empty($nom) || empty($courriel) || empty($cellulaire) || $id_ville <= 0) {
-        $erreur = "Tous les champs de base sont obligatoires.";
-    } elseif ($type_compte === 'pro' && empty($nom_entreprise)) {
-        $erreur = "Le nom officiel de votre entreprise est obligatoire pour un compte marchand.";
-    } elseif (!filter_var($courriel, FILTER_VALIDATE_EMAIL)) {
-        $erreur = "L'adresse courriel n'est pas valide.";
-    } else {
-        try {
-            // Vérifier si le courriel est déjà utilisé
-            $check = $bdd->prepare("SELECT id_utilisateur FROM jevend_utilisateurs WHERE courriel = ?");
-            $check->execute([$courriel]);
-            
-            if ($check->fetch()) {
-                $erreur = "Cette adresse courriel est déjà associée à un compte.";
-            } else {
-                // Génération du tout premier jeton de validation d'entrée
-                $premier_code = rand(100000, 999999);
-                $expiration = date('Y-m-d H:i:s', strtotime('+15 minutes'));
-
-                // Mot de passe système factice chiffré
-                $mot_de_passe_factice = password_hash(uniqid(rand(), true), PASSWORD_DEFAULT);
-
-                // Insertion propre en base de données avec prise en compte complète du profil PRO
-                $insert = $bdd->prepare("
-                    INSERT INTO jevend_utilisateurs 
-                    (nom, courriel, cellulaire, id_ville, mot_de_passe, statut, type_compte, nom_entreprise, telephone_pro, adresse_pro, site_web, neq, jeton_connexion, jeton_expiration) 
-                    VALUES (?, ?, ?, ?, ?, 'actif', ?, ?, ?, ?, ?, ?, ?, ?)
-                ");
-                $insert->execute([
-                    $nom, 
-                    $courriel, 
-                    $cellulaire, 
-                    $id_ville, 
-                    $mot_de_passe_factice, 
-                    $type_compte, 
-                    ($type_compte === 'pro' ? $nom_entreprise : NULL), 
-                    ($type_compte === 'pro' ? $telephone_pro : NULL), 
-                    ($type_compte === 'pro' ? $adresse_pro : NULL), 
-                    ($type_compte === 'pro' ? $site_web : NULL), 
-                    ($type_compte === 'pro' ? $neq : NULL), 
-                    $premier_code, 
-                    $expiration
-                ]);
-
-                // Configuration des entêtes pour l'envoi en HTML
-                $headers = "MIME-Version: 1.0\r\n";
-                $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-                $headers .= "From: jevend.com <no-reply@jevend.com>\r\n";
-                $headers .= "Reply-To: no-reply@jevend.com\r\n";
-                $headers .= "X-Mailer: PHP/" . phpversion();
-
-                $sujet = "Bienvenue sur jevend.com - Confirmez votre compte !";
-                $nom_propre = htmlspecialchars($type_compte === 'pro' ? $nom_entreprise : $nom);
-                $annee_courante = date('Y');
-
-                $message = "
-                <!DOCTYPE html>
-                <html lang='fr'>
-                <head><meta charset='UTF-8'></head>
-                <body style='margin: 0; padding: 0; background-color: #f1f5f9; font-family: Arial, sans-serif;'>
-                    <table width='100%' border='0' cellspacing='0' cellpadding='0' style='background-color: #f1f5f9; padding: 40px 10px;'>
-                        <tr>
-                            <td align='center'>
-                                <table width='100%' max-width='550' border='0' cellspacing='0' cellpadding='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0;'>
-                                    <tr>
-                                        <td align='center' style='background-color: #0f172a; padding: 25px;'>
-                                            <img src='http://192.168.40.2/assets/LOGO_JEVEND-COM.jpeg' alt='jevend.com' style='max-height: 50px; border-radius: 4px;'>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style='padding: 40px 30px; color: #334155;'>
-                                            <h1 style='margin: 0 0 15px 0; font-size: 1.4rem; color: #0f172a; text-align: center;'>
-                                                Bienvenue chez nous, " . $nom_propre . " !
-                                            </h1>
-                                            <p style='margin: 0 0 25px 0; font-size: 0.95rem; color: #475569; text-align: center;'>
-                                                Entrez le code unique ci-dessous pour valider votre compte :
-                                            </p>
-                                            <div style='text-align: center; margin-bottom: 25px;'>
-                                                <div style='background-color: #f8fafc; border: 2px dashed #2563eb; color: #2563eb; font-size: 2.2rem; font-weight: bold; letter-spacing: 6px; padding: 15px 30px; display: inline-block; font-family: Courier New, monospace;'>
-                                                    " . $premier_code . "
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </body>
-                </html>";
-
-                @mail($courriel, $sujet, $message, $headers);
-
-                $_SESSION['temp_email_connexion'] = $courriel;
-                header('Location: connexion.php');
-                exit();
-            }
-        } catch (PDOException $e) {
-            $erreur = "Erreur lors de la création du compte : " . $e->getMessage();
-        }
-    }
 }
 ?>
 <!DOCTYPE html>
@@ -166,6 +40,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         @media (max-width: 768px) {
             .admin-conteneur { max-width: 100% !important; width: 100% !important; padding: 0 15px !important; margin-top: 20px !important; box-sizing: border-box !important; }
             .form-bloc { width: 100% !important; box-sizing: border-box !important; padding: 20px !important; }
+        }
+        .msg-erreur-champ {
+            color: #dc2626;
+            font-size: 0.78rem;
+            font-weight: bold;
+            margin-top: 4px;
+            display: none;
+        }
+        .input-invalide {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+        }
+        .btn-desactive {
+            background-color: #cbd5e1 !important;
+            cursor: not-allowed !important;
+            opacity: 0.7;
         }
     </style>
 </head>
@@ -187,81 +77,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
-            <form action="inscription.php" method="POST">
+            <form id="formInscription" action="inscription_execute.php" method="POST" novalidate>
                 
-                <!-- SÉLECTEUR DU TYPE DE COMPTE -->
+                <!-- SÉLECTEUR TYPE DE COMPTE -->
                 <div class="champ-groupe" style="margin-bottom: 20px;">
                     <label style="font-weight: bold; display: block; margin-bottom: 8px; color: #0f172a;">Type de compte :</label>
                     <div style="display: flex; gap: 15px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
                         <label style="cursor: pointer; font-weight: bold; margin: 0; display: flex; align-items: center; gap: 6px; color: #334155;">
-                            <input type="radio" name="type_compte" value="particulier" <?= (!isset($_POST['type_compte']) || $_POST['type_compte'] === 'particulier') ? 'checked' : '' ?> onclick="basculerChampsPro(false)"> 
+                            <input type="radio" name="type_compte" value="particulier" <?= (($saisie['type_compte'] ?? 'particulier') === 'particulier') ? 'checked' : '' ?> onclick="basculerChampsPro(false)"> 
                             👤 Particulier
                         </label>
                         <label style="cursor: pointer; font-weight: bold; margin: 0; display: flex; align-items: center; gap: 6px; color: #2563eb;">
-                            <input type="radio" name="type_compte" value="pro" <?= (isset($_POST['type_compte']) && $_POST['type_compte'] === 'pro') ? 'checked' : '' ?> onclick="basculerChampsPro(true)"> 
+                            <input type="radio" name="type_compte" value="pro" <?= (($saisie['type_compte'] ?? '') === 'pro') ? 'checked' : '' ?> onclick="basculerChampsPro(true)"> 
                             🏢 Commerce / Entreprise
                         </label>
                     </div>
                 </div>
 
-                <!-- BLOC DES CHAMPS PRO (DYNAMIQUE) -->
-                <div id="bloc-champs-pro" style="display: <?= (isset($_POST['type_compte']) && $_POST['type_compte'] === 'pro') ? 'block' : 'none' ?>; background: #eff6ff; padding: 15px; border-radius: 6px; border: 1px solid #bfdbfe; margin-bottom: 20px; box-sizing: border-box;">
+                <!-- BLOC DES CHAMPS PRO -->
+                <div id="bloc-champs-pro" style="display: <?= (($saisie['type_compte'] ?? '') === 'pro') ? 'block' : 'none' ?>; background: #eff6ff; padding: 15px; border-radius: 6px; border: 1px solid #bfdbfe; margin-bottom: 20px; box-sizing: border-box;">
                     <h4 style="margin-top: 0; color: #1e40af; margin-bottom: 12px; font-size: 0.95rem;">🏢 Profil Commercial</h4>
                     
                     <div class="champ-groupe" style="margin-bottom: 12px;">
                         <label for="nom_entreprise" style="font-weight: bold; display: block; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 4px;">Nom officiel de l'entreprise * :</label>
-                        <input type="text" name="nom_entreprise" id="nom_entreprise" placeholder="Ex: Garage Auto Matane Inc." value="<?= htmlspecialchars($_POST['nom_entreprise'] ?? '') ?>" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #93c5fd; box-sizing: border-box;">
+                        <input type="text" name="nom_entreprise" id="nom_entreprise" placeholder="Ex: Garage Auto Matane Inc." value="<?= htmlspecialchars($saisie['nom_entreprise'] ?? '') ?>" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #93c5fd; box-sizing: border-box;">
+                        <div class="msg-erreur-champ" id="err_nom_entreprise">⚠️ Veuillez renseigner le nom officiel de votre entreprise.</div>
                     </div>
 
                     <div class="champ-groupe" style="margin-bottom: 12px;">
-                        <label for="telephone_pro" style="font-weight: bold; display: block; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 4px;">Téléphone commercial direct :</label>
-                        <input type="text" name="telephone_pro" id="telephone_pro" placeholder="Ex: 418-555-0199" value="<?= htmlspecialchars($_POST['telephone_pro'] ?? '') ?>" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #93c5fd; box-sizing: border-box;">
+                        <label for="telephone_pro" style="font-weight: bold; display: block; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 4px;">Téléphone commercial direct * :</label>
+                        <input type="tel" name="telephone_pro" id="telephone_pro" placeholder="Ex: 418-555-0199" value="<?= htmlspecialchars($saisie['telephone_pro'] ?? '') ?>" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #93c5fd; box-sizing: border-box;">
+                        <div class="msg-erreur-champ" id="err_telephone_pro">⚠️ Veuillez entrer un numéro de téléphone commercial direct.</div>
                     </div>
 
                     <div class="champ-groupe" style="margin-bottom: 12px;">
-                        <label for="adresse_pro" style="font-weight: bold; display: block; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 4px;">Adresse commerciale :</label>
-                        <input type="text" name="adresse_pro" id="adresse_pro" placeholder="Ex: 123 Avenue de la Phare, Matane" value="<?= htmlspecialchars($_POST['adresse_pro'] ?? '') ?>" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #93c5fd; box-sizing: border-box;">
-                    </div>
-
-                    <div class="champ-groupe" style="margin-bottom: 12px;">
-                        <label for="site_web" style="font-weight: bold; display: block; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 4px;">Site Web de l'entreprise (Facultatif) :</label>
-                        <input type="text" name="site_web" id="site_web" placeholder="Ex: https://mon-garage.com" value="<?= htmlspecialchars($_POST['site_web'] ?? '') ?>" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #93c5fd; box-sizing: border-box;">
+                        <label for="adresse_pro" style="font-weight: bold; display: block; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 4px;">Adresse commerciale * :</label>
+                        <input type="text" name="adresse_pro" id="adresse_pro" placeholder="Ex: 123 Avenue de la Phare, Matane" value="<?= htmlspecialchars($saisie['adresse_pro'] ?? '') ?>" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #93c5fd; box-sizing: border-box;">
+                        <div class="msg-erreur-champ" id="err_adresse_pro">⚠️ L'adresse commerciale est obligatoire pour un compte Pro.</div>
                     </div>
 
                     <div class="champ-groupe">
-                        <label for="neq" style="font-weight: bold; display: block; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 4px;">NEQ ou No. TPS/TVQ (Facultatif) :</label>
-                        <input type="text" name="neq" id="neq" placeholder="Ex: 1234567890" value="<?= htmlspecialchars($_POST['neq'] ?? '') ?>" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #93c5fd; box-sizing: border-box;">
+                        <label for="site_web" style="font-weight: bold; display: block; font-size: 0.85rem; color: #1e3a8a; margin-bottom: 4px;">Site Web de l'entreprise (Facultatif) :</label>
+                        <input type="url" name="site_web" id="site_web" placeholder="Ex: https://mon-garage.com" value="<?= htmlspecialchars($saisie['site_web'] ?? '') ?>" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #93c5fd; box-sizing: border-box;">
                     </div>
                 </div>
 
+                <!-- CHAMPS COMMUNS OBLIGATOIRES -->
                 <div class="champ-groupe" style="margin-bottom: 15px;">
-                    <label for="nom">Nom du responsable du compte :</label>
-                    <input type="text" name="nom" id="nom" placeholder="Ex: Jean Tremblay..." value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>" required style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <label for="nom">Nom du responsable du compte * :</label>
+                    <input type="text" name="nom" id="nom" placeholder="Ex: Jean Tremblay..." value="<?= htmlspecialchars($saisie['nom'] ?? '') ?>" style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <div class="msg-erreur-champ" id="err_nom">⚠️ Vous avez oublié de saisir le nom du responsable.</div>
                 </div>
 
                 <div class="champ-groupe" style="margin-bottom: 15px;">
-                    <label for="courriel">Votre adresse courriel :</label>
-                    <input type="email" name="courriel" id="courriel" placeholder="Ex: jean.tremblay@gmail.com" value="<?= htmlspecialchars($_POST['courriel'] ?? '') ?>" required style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <label for="courriel">Votre adresse courriel * :</label>
+                    <input type="email" name="courriel" id="courriel" placeholder="Ex: jean.tremblay@gmail.com" value="<?= htmlspecialchars($saisie['courriel'] ?? '') ?>" style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <div class="msg-erreur-champ" id="err_courriel">⚠️ Une adresse courriel valide est requise pour recevoir votre code.</div>
                 </div>
 
                 <div class="champ-groupe" style="margin-bottom: 15px;">
-                    <label for="cellulaire">Numéro de cellulaire (Pour sécurité / validation) :</label>
-                    <input type="tel" name="cellulaire" id="cellulaire" placeholder="Ex: 418-555-1234" value="<?= htmlspecialchars($_POST['cellulaire'] ?? '') ?>" required style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <label for="cellulaire">Numéro de cellulaire * :</label>
+                    <input type="tel" name="cellulaire" id="cellulaire" placeholder="Ex: 418-555-1234" value="<?= htmlspecialchars($saisie['cellulaire'] ?? '') ?>" style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <div class="msg-erreur-champ" id="err_cellulaire">⚠️ Veuillez entrer un numéro de cellulaire valide.</div>
                 </div>
 
                 <div class="champ-groupe" style="margin-bottom: 20px;">
-                    <label for="id_ville">Votre ville de résidence / commerce :</label>
-                    <select name="id_ville" id="id_ville" required style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <label for="id_ville">Votre ville de résidence / commerce * :</label>
+                    <select name="id_ville" id="id_ville" style="width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 4px;">
                         <option value="">-- Sélectionnez votre ville --</option>
                         <?php foreach ($villes as $v): ?>
-                            <option value="<?= $v['id_ville'] ?>" <?= (isset($_POST['id_ville']) && $_POST['id_ville'] == $v['id_ville']) ? 'selected' : '' ?>>
+                            <option value="<?= $v['id_ville'] ?>" <?= (($saisie['id_ville'] ?? 0) == $v['id_ville']) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($v['nom_ville']) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <div class="msg-erreur-champ" id="err_id_ville">⚠️ La sélection d'une ville est obligatoire.</div>
                 </div>
 
-                <button type="submit" class="btn-action" style="width: 100%; font-weight: bold; padding: 12px; margin-top: 10px; background-color: #2563eb; color: #ffffff; border: none; border-radius: 4px; cursor: pointer;">
+                <button type="submit" id="btnSubmit" class="btn-action btn-desactive" disabled style="width: 100%; font-weight: bold; padding: 12px; margin-top: 10px; background-color: #2563eb; color: #ffffff; border: none; border-radius: 4px; transition: all 0.2s;">
                     🎯 Créer mon compte
                 </button>
             </form>
@@ -274,18 +167,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script>
-    function basculerChampsPro(estPro) {
+    const form = document.getElementById('formInscription');
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    const inputsObligatoiresBase = ['nom', 'courriel', 'cellulaire', 'id_ville'];
+    const inputsObligatoiresPro  = ['nom_entreprise', 'telephone_pro', 'adresse_pro'];
+
+    function estPro() {
+        return document.querySelector('input[name="type_compte"]:checked').value === 'pro';
+    }
+
+    function basculerChampsPro(estMembrePro) {
         const blocPro = document.getElementById('bloc-champs-pro');
-        const inputNomEntreprise = document.getElementById('nom_entreprise');
-        
-        if (estPro) {
-            blocPro.style.display = 'block';
-            inputNomEntreprise.required = true;
+        blocPro.style.display = estMembrePro ? 'block' : 'none';
+        verifierFormulaireComplet();
+    }
+
+    function validerChamp(id) {
+        const el = document.getElementById(id);
+        const err = document.getElementById('err_' + id);
+        if (!el) return true;
+
+        let valide = true;
+        const val = el.value.trim();
+
+        if (id === 'courriel') {
+            valide = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        } else if (id === 'id_ville') {
+            valide = parseInt(val) > 0;
         } else {
-            blocPro.style.display = 'none';
-            inputNomEntreprise.required = false;
+            valide = val.length > 0;
+        }
+
+        if (!valide) {
+            el.classList.add('input-invalide');
+            if (err) err.style.display = 'block';
+        } else {
+            el.classList.remove('input-invalide');
+            if (err) err.style.display = 'none';
+        }
+
+        return valide;
+    }
+
+    function verifierFormulaireComplet() {
+        let formulaireValide = true;
+
+        // Validation des champs communs
+        for (const id of inputsObligatoiresBase) {
+            const el = document.getElementById(id);
+            const val = el ? el.value.trim() : '';
+            if (id === 'courriel') {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) formulaireValide = false;
+            } else if (id === 'id_ville') {
+                if (parseInt(val) <= 0 || isNaN(parseInt(val))) formulaireValide = false;
+            } else {
+                if (val.length === 0) formulaireValide = false;
+            }
+        }
+
+        // Validation des champs Pro si mode Pro actif
+        if (estPro()) {
+            for (const id of inputsObligatoiresPro) {
+                const el = document.getElementById(id);
+                if (!el || el.value.trim().length === 0) {
+                    formulaireValide = false;
+                }
+            }
+        }
+
+        // Gestion de l'état du bouton
+        if (formulaireValide) {
+            btnSubmit.disabled = false;
+            btnSubmit.classList.remove('btn-desactive');
+            btnSubmit.style.cursor = 'pointer';
+        } else {
+            btnSubmit.disabled = true;
+            btnSubmit.classList.add('btn-desactive');
+            btnSubmit.style.cursor = 'not-allowed';
         }
     }
+
+    // Attacher l'événement blur (quand l'utilisateur quitte le champ)
+    const tousChamps = [...inputsObligatoiresBase, ...inputsObligatoiresPro, 'site_web'];
+    tousChamps.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('blur', () => {
+                validerChamp(id);
+                verifierFormulaireComplet();
+            });
+            el.addEventListener('input', () => {
+                verifierFormulaireComplet();
+            });
+        }
+    });
+
+    // Évaluation initiale
+    verifierFormulaireComplet();
     </script>
 </body>
 </html>
