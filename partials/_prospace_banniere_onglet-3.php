@@ -95,7 +95,7 @@
 
                     <div style="font-size: 0.9rem;">
                         ✉️ <strong>Courriel direct :</strong><br>
-                        <a href="mailto:douimet61@gmail.com" style="color: #38bdf8; font-weight: bold; text-decoration: none;">douimet61@gmail.com</a>
+                        <a href="mailto:douimet61@gmail.com" style="color: #38bdf8; font-weight: bold; text-decoration: none;">---</a>
                     </div>
                 </div>
             </div>
