@@ -6,6 +6,8 @@
 session_start();
 require_once 'config.php';
 require_once 'partials/_chek_bann_pro.php';
+// Purge automatique silencieuse des messages de chat de plus de 30 jours
+require_once 'chat_delete_membre.php';
 // include_once 'partials/_check_bann_regulier.php';
 include_once 'partials/_check_ann_reguliere.php';
 require_once 'fonctions_geoloc.php';

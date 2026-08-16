@@ -1,6 +1,6 @@
 // =============================================================================
 // NOM DU SCRIPT : memory_engine.js
-// REVISION     : 2.0 - Gestion dynamique des kits de symboles
+// REVISION     : 3.0 - Intégration du chrono, kits et envoi AJAX des scores
 // =============================================================================
 
 let cartesMemory = [];
@@ -10,15 +10,33 @@ let nombreCoups = 0;
 let verouillagePlateau = false;
 let kitActuelSymboles = [];
 
+// Gestion du Chronomètre
+let secondesMemory = 0;
+let timerMemoryInterval = null;
+
+function demarrerTimerMemory(tempsDepart = 0) {
+    clearInterval(timerMemoryInterval);
+    secondesMemory = tempsDepart;
+    timerMemoryInterval = setInterval(() => {
+        secondesMemory++;
+    }, 1000);
+}
+
+function arreterTimerMemory() {
+    clearInterval(timerMemoryInterval);
+}
+
 function obtenirSymbolesPourPartie() {
     const elSelect = document.getElementById('selectKitMemory');
     const choix = elSelect ? elSelect.value : 'aleatoire';
 
-    if (choix !== 'aleatoire' && KITS_MEMORY[choix]) {
+    if (choix !== 'aleatoire' && typeof KITS_MEMORY !== 'undefined' && KITS_MEMORY[choix]) {
         return KITS_MEMORY[choix].symboles;
     }
-    // Si aléatoire
-    return obtenirKitAleatoire().symboles;
+    if (typeof obtenirKitAleatoire === 'function') {
+        return obtenirKitAleatoire().symboles;
+    }
+    return ['🚗', '🏠', '📱', '🎸', '📷', '🛠️', '💻', '🚲'];
 }
 
 function changerKitExplicitely() {
@@ -33,7 +51,8 @@ function initialiserMemory() {
             cartesMemory = etat.cartes;
             pairesTrouvees = etat.paires;
             nombreCoups = etat.coups;
-            kitActuelSymboles = etat.kitSymboles || KITS_MEMORY.utilitaire.symboles;
+            secondesMemory = etat.secondes || 0;
+            kitActuelSymboles = etat.kitSymboles || ['🚗', '🏠', '📱', '🎸', '📷', '🛠️', '💻', '🚲'];
             
             if (document.getElementById('selectKitMemory') && etat.choixKit) {
                 document.getElementById('selectKitMemory').value = etat.choixKit;
@@ -41,6 +60,7 @@ function initialiserMemory() {
 
             rafraichirStatsMemory();
             genererGrilleMemoryHTML();
+            demarrerTimerMemory(secondesMemory);
             
             cartesMemory.forEach((c, idx) => {
                 const el = document.querySelector(`.memory-card[data-index="${idx}"]`);
@@ -87,6 +107,7 @@ function nouvellePartieMemory() {
 
     rafraichirStatsMemory();
     genererGrilleMemoryHTML();
+    demarrerTimerMemory(0);
     sauvegarderEtatMemory();
 }
 
@@ -151,13 +172,39 @@ function verifierPaireMemory() {
 
         sauvegarderEtatMemory();
 
-        if (pairesTrouvees === (kitActuelSymboles.length)) {
+        // VICTOIRE
+        if (pairesTrouvees === kitActuelSymboles.length) {
+            arreterTimerMemory();
+
             const winMsg = document.getElementById('memoryWinMsg');
             const finalCoups = document.getElementById('finalCoups');
             if (winMsg && finalCoups) {
-                finalCoups.textContent = nombreCoups;
+                finalCoups.textContent = `${nombreCoups} (${secondesMemory}s)`;
                 winMsg.style.display = 'block';
             }
+
+            // Envoi AJAX du score au serveur
+            const elSelect = document.getElementById('selectKitMemory');
+            const formData = new FormData();
+            formData.append('coups', nombreCoups);
+            formData.append('temps', secondesMemory);
+            formData.append('kit', elSelect ? elSelect.value : 'utilitaire');
+
+            fetch('enregistrer_score_memory.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'succes' && data.top) {
+                    const elTxt = document.getElementById('txtChampion');
+                    if (elTxt) {
+                        elTxt.textContent = `${data.top.nom} (${data.top.nombre_coups} coups en ${data.top.temps_secondes}s)`;
+                    }
+                }
+            })
+            .catch(err => console.error("Erreur enregistrement score :", err));
+
             localStorage.removeItem('jevend_memory_partie');
         }
     } else {
@@ -188,6 +235,7 @@ function sauvegarderEtatMemory() {
         cartes: cartesMemory,
         paires: pairesTrouvees,
         coups: nombreCoups,
+        secondes: secondesMemory,
         kitSymboles: kitActuelSymboles,
         choixKit: elSelect ? elSelect.value : 'aleatoire'
     };

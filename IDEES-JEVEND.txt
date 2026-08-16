@@ -1,0 +1,23 @@
+1. Notifications en temps réel (Email ou SMS)
+Pour la Zone "Je Cherche" : Quand un membre poste une demande d'achat dans une catégorie et une ville précise, les vendeurs enregistrés dans cette zone pourraient recevoir une alerte instantanée : "Un acheteur cherche une tondeuse à Mont-Joli !". Ça créerait des ventes ultra-rapides.
+
+Pour la Liste d'Envie : Informer automatiquement un acheteur potentiel dès que le vendeur applique une baisse de prix ou un "Bon Plan" sur un article qu'il a en favori.
+
+OK FAIT **** 2. Messagerie interne directe (Chat Vendeur/Acheteur)
+Un petit système de conversation privée directement sur le site (sans devoir forcément donner son numéro de téléphone ou son courriel personnel au départ). Ça sécurise les échanges et garde les utilisateurs actifs sur la plateforme.
+
+3. Système d'Avis / Évaluations (Réputation)
+Permettre de laisser une note (ex: 5 étoiles) et un commentaire après une transaction. Sur un site de petites annonces locales, la confiance est le nerf de la guerre. Un vendeur bien noté vendra 3 fois plus vite.
+
+LA NOTE D'ÉVALUATION DE CE MEMBRE: MODULE evaluation_membre.php (qui permet d'evaluer le membre)  + sur la page au choix sur 5 etoiles + champs evaluation sous forme de choix dans une liste.
+
+CONCEPT: UN LIEN LOGÉ DANS STORE.PHP. SI PAS D'EVALUATION ALORS "EVALUER CE MEMBRE" SI NON "LIRE LES AVIS SUR CE MEMBRE"  ET DANS LA SECTION DES ÉVALUATION UN LIEN "EVALUER CE MEMBRE"
+
+COMMENT SONT AFFICHE LES EVALUATION: FAIT DANS voir_evaluation_membre.php .. une ligne par membre évalué.
+
+-----------------------
+4. Geolocalisation avec Rayon de Recherche
+Permettre aux acheteurs de filtrer non seulement par municipalité, mais par rayon (ex: "À moins de 30 km de Matane").
+
+
+Des conneries à la hollywood... les US sont bien connu pour créer la peur dans une réthorique constirationiste et essai d'endormir les cerveaux pour trouver des recrues et gonfler leur clan partisan ...  La théorie du remplacement planifié : L'idée d'un plan ourdi pour substituer délibérément une population par une autre relève du fantasme xénophobe. Les flux migratoires s'expliquent par des facteurs économiques, climatiques, géopolitiques et démographiques complexes, et non par un complot. l'amalgame généralisateur : Réduire l'ensemble des musulmans à des extrémistes violents ou patriarcaux en se basant sur des caricatures et des amalgames grossiers nie la réalité de millions de personnes pacifiques et intégrées.La peur comme outil politique : Le procédé (« je viens du futur », insultes, caricatures des prénoms) vise uniquement à court-circuiter la réflexion rationnelle par la peur, la colère et le rejet de l'autre pour inciter à l'hostilité.
