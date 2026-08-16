@@ -38,6 +38,21 @@ try {
     }
 } catch (PDOException $e) { }
 
+
+// Extraction du meilleur score de la semaine
+$champion_semaine = null;
+try {
+    $stmt_top = $bdd->query("
+        SELECT s.nombre_coups, s.temps_secondes, u.nom 
+        FROM jevend_score_memory s
+        JOIN jevend_utilisateurs u ON s.id_utilisateur = u.id_utilisateur
+        WHERE s.date_enregistrement >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ORDER BY s.nombre_coups ASC, s.temps_secondes ASC 
+        LIMIT 1
+    ");
+    $champion_semaine = $stmt_top->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) { }
+
 try {
     // 1. Extraction de tes propres annonces avec nombre de prospects en Liste d'Envie
     $annonces = $bdd->prepare("
@@ -141,6 +156,7 @@ try {
                 <button class="onglet-btn" onclick="changerOnglet('bon-plan')">🚀 Bon Plan de Vente</button>
                 <button class="onglet-btn" onclick="changerOnglet('magasin')">🏪 Mon Magasin</button>
                 <button class="onglet-btn" onclick="changerOnglet('stats')">📊 Stats sur Annonce</button>
+                <button class="onglet-btn" onclick="changerOnglet('jeux')">🎮 Jeux</button>
            
             </div>
             <a href="index.php" class="btn-retour-fil">🌐 Fil d'actualité public</a>
@@ -163,26 +179,41 @@ try {
         </div>
 
 
+        <!-- À insérer sous le bloc #onglet-stats (vers la ligne 145) -->
+<div id="onglet-jeux" class="contenu-onglet">
+    <?php include 'partials/_memory.php'; ?>
+</div>
+
+
 
     <script>
-    function changerOnglet(nomOnglet) {
-        document.querySelectorAll('.onglet-btn').forEach(btn => btn.classList.remove('actif'));
-        document.querySelectorAll('.contenu-onglet').forEach(content => content.classList.remove('actif'));
+    // À remplacer vers la ligne 150
+function changerOnglet(nomOnglet) {
+    document.querySelectorAll('.onglet-btn').forEach(btn => btn.classList.remove('actif'));
+    document.querySelectorAll('.contenu-onglet').forEach(content => content.classList.remove('actif'));
 
-        if (nomOnglet === 'vitrines') {
-            document.querySelector('.onglets-navigation button:nth-child(1)').classList.add('actif');
-            document.getElementById('onglet-vitrines').classList.add('actif');
-        } else if (nomOnglet === 'bon-plan') {
-            document.querySelector('.onglets-navigation button:nth-child(2)').classList.add('actif');
-            document.getElementById('onglet-bon-plan').classList.add('actif');
-        } else if (nomOnglet === 'magasin') {
-            document.querySelector('.onglets-navigation button:nth-child(3)').classList.add('actif');
-            document.getElementById('onglet-magasin').classList.add('actif');
-        } else if (nomOnglet === 'stats') {
-            document.querySelector('.onglets-navigation button:nth-child(4)').classList.add('actif');
-            document.getElementById('onglet-stats').classList.add('actif');
+    if (nomOnglet === 'vitrines') {
+        document.querySelector('.onglets-navigation button:nth-child(1)').classList.add('actif');
+        document.getElementById('onglet-vitrines').classList.add('actif');
+    } else if (nomOnglet === 'bon-plan') {
+        document.querySelector('.onglets-navigation button:nth-child(2)').classList.add('actif');
+        document.getElementById('onglet-bon-plan').classList.add('actif');
+    } else if (nomOnglet === 'magasin') {
+        document.querySelector('.onglets-navigation button:nth-child(3)').classList.add('actif');
+        document.getElementById('onglet-magasin').classList.add('actif');
+    } else if (nomOnglet === 'stats') {
+        document.querySelector('.onglets-navigation button:nth-child(4)').classList.add('actif');
+        document.getElementById('onglet-stats').classList.add('actif');
+    } else if (nomOnglet === 'jeux') {
+        document.querySelector('.onglets-navigation button:nth-child(5)').classList.add('actif');
+        document.getElementById('onglet-jeux').classList.add('actif');
+
+        // Initialisation ou rechargement du Memory
+        if (typeof initialiserMemory === 'function') {
+            initialiserMemory();
         }
     }
+}
 
     function marquerObjetVendu(idAnnonce, boutonElement) {
         if (confirm("Voulez-vous vraiment déclarer cet objet comme vendu ? Cette action coupera définitivement les appels et messages sur votre cellulaire pour cette vitrine.")) {
