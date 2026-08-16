@@ -1,0 +1,31 @@
+
+SLOGAN DU SITE
+« Premier arrivé, premier vendu »
+
+
+POUR VERIFIER LES DOUBLONS ET LES CRÉATION DES MEME ANNONCES.. ON VA VERIFGIER L'EMPREINTE DES IMAGE
+
+partials/_register_image_annonce.php
+
+table:  jevend_image_hash
+
+1. Le filtre textuel strict (Le titre et la description)
+C'est la première barrière, la plus simple et la moins coûteuse en ressources serveur.
+
+Le principe : Au moment où le membre clique sur "Publier" dans creer_annonce.php, le script va vérifier dans la base de données si l'utilisateur possède déjà une annonce active avec le même titre exact (ou une similarité de texte très élevée).
+
+La parade : Si le titre est rigoureusement identique à une de ses annonces en cours, le système bloque la soumission et affiche : "Vous avez déjà une annonce active avec ce titre. Utilisez le Bon Plan de Vente pour la propulser au sommet au lieu de la recréer !"
+
+2. L'empreinte numérique des photos (Le Hash MD5)
+C'est la technique la plus efficace contre les malins qui changent légèrement un mot dans le titre mais gardent exactement la même photo.
+
+Le principe : Sur ton système actuel, tu compresses les images en JPEG en Base64 avant de les stocker dans le dossier uploads/. Au moment de l'upload, PHP peut calculer l'empreinte unique de l'image (via md5_file()).
+
+La parade : Tu enregistres le hash MD5 de chaque photo dans ta table jevend_annonces_images. Si un utilisateur essaie de téléverser une photo dont l'empreinte existe déjà dans ses propres annonces actives (ou récemment supprimées), le système détecte qu'il s'agit du même visuel recyclé et bloque net la publication.
+
+3. La règle du « Délai de carence » (Le Cooldown anti-suppression)
+Souvent, l'astuce consiste à supprimer l'ancienne annonce juste avant d'en créer une nouvelle pour ne pas éveiller les soupçons du quota ou du doublon.
+
+Le principe : Même si l'ancienne annonce est supprimée, tu conserves une trace de son historique ou de ses images pendant une période tampon (par exemple, 14 jours).
+
+La parade : Si un utilisateur supprime une annonce et tente d'en publier une nouvelle avec le même contenu ou la même photo dans les 14 jours suivants, le système refuse. Cela casse complètement la stratégie du "zéro attente".

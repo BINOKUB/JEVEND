@@ -1,0 +1,460 @@
+
+
+POUR VOIR LES BANN ASSOCIE AU ANNONCE ET AU PROPRIO
+
+SELECT  b.id_banniere, b.type_banniere,  u.nom AS vendeur, CONCAT('#', a.id_annonces, ' - ', a.titre_objet_nettoye) AS annonce_cible, b.texte_banniere AS slogan, b.statut_affichage FROM jevend_bannieres_actives b LEFT JOIN jevend_utilisateurs u ON b.id_utilisateur = u.id_utilisateur LEFT JOIN jevend_annonces a ON b.id_annonce = a.id_annonces;
+
+
+
+
+UPDATE jevend_bannieres_actives_pro SET date_fin = '2026-07-20 12:00:00' WHERE id_banniere_pro = 1;
+
+UPDATE jevend_bannieres_actives SET date_debut_activation = '2026-07-04 11:46:41' WHERE id_banniere = 1;
+
+
+update jevend_annonces set date_expiration="2025-07-20 07:13:03" where id_annonces=1044
+
+select id_annonces, titre_objet_nettoye, date_expiration from jevend_annonces where id_annonces=8;
+
+UPDATE jevend_annonces SET date_expiration = DATE_ADD(NOW(), INTERVAL 11 DAY) WHERE id_annonces = 1043;
+
+------------------------------
+9 JUILLET
+
+sur INDEX
+
+
+
+EFFACER ES BANNIERE PENDNT LE TEST
+
+-- 1. On vide la table des bannières actives pour repartir à neuf
+TRUNCATE TABLE jevend_bannieres_actives;
+
+-- 2. Optionnel : Si tu veux aussi remettre ton compteur comptable admin à zéro
+TRUNCATE TABLE jevend_achats_publicites;
+
+
+
+SLOGAN
+
+Jevend Marketplace : Vos petites annonces en un clic".
+
+Simples et Directs (Faciles à retenir)Jevend Marketplace : Vos petites annonces en un clic.Jevend Marketplace : Tout se vend, tout se trouve.Jevend Marketplace : Vendez simplement, achetez localement.💰 Axés sur le Gain et l'ÉconomieJevend Marketplace : Donnez une seconde vie à vos objets, faites de la place aux profits.Jevend Marketplace : Le bon coin pour les bonnes affaires.Jevend Marketplace : Vendez vite, achetez mieux.
+
+
+🤝 Axés sur la Communauté et la ConfianceJevend Marketplace : La communauté des bonnes affaires.Jevend Marketplace : Les petites annonces de confiance près de chez vous.Jevend Marketplace : Votre marché de proximité en ligne.⚡ Courts et Modernes (Parfaits pour un logo ou les réseaux sociaux)Jevend Marketplace : Cliquez. Vendez. Profitez.Jevend Marketplace : Le réflexe petites annonces.Jevend Marketplace : L'annonce commence ici.
+
+
+
+PISTE NOUVELLES IDEES
+
+
+1. La Zone « Je Cherche ! » (Le Marché Inversé)
+Au lieu de laisser uniquement les vendeurs publier, on permet aux acheteurs de poster leurs besoins précis.
+
+Le concept : Un membre publie : « Je cherche un banc de scie fonctionnel autour de Matane, budget 150 $ max. »
+
+L'impact : C'est un moteur d'inscriptions massif. Les vendeurs locaux qui ont cet objet dans leur garage (et qui n'avaient pas pris le temps de faire une annonce) créent un compte en vitesse pour répondre directement à l'acheteur.
+
+Pourquoi c'est fort : Ça crée des transactions ultra-rapides et ça transforme les « curieux » en vendeurs actifs.
+
+2. Le Coin « Troc & Dons » (L'économie 0 $)
+Le mot « GRATUIT » est le plus puissant moteur de recherche au monde sur le web.
+
+Le concept : Une sous-catégorie dédiée où les gens donnent ce qui les encombre ou proposent des échanges (« Échange ma batterie contre une guitare » ou « Don de bois de chauffage »).
+
+L'impact : Ça amène un flux quotidien continu de visiteurs qui viennent voir les opportunités du jour.
+
+Le lien avec le reste du site : Une fois sur le site pour récupérer un objet gratuit, le visiteur voit les bannières, les Ventes Flash et les autres annonces payantes autour de chez lui.
+
+3. La carte des « Ventes de Garage Virtuelles »
+Au Québec, les ventes de garage sont une vraie culture, mais les afficher sur un poteau ne touche plus personne.
+
+Le concept : Un membre peut regrouper 10 ou 15 objets de sa maison sous un badge spécial « Vente de garage » avec une date ou un rabais de lot.
+
+L'impact : Les gens adoreront parcourir « la vente de garage d'Éric à Rimouski » directement depuis leur téléphone. Ça donne un côté chineur/brocanteur hyper addictif.
+
+4. Le Réseau « Coup de Main & Transport Local »
+Un gros frein aux ventes d'objets lourds ou encombrants (comme ton piano Yamaha GC2 !), c'est la logistique.
+
+Le concept : Permettre aux membres de proposer un service de transport local (« J'ai un pick-up/remorque à Matane, dispo le week-end pour déménager vos achats JeVend »).
+
+L'impact : Ça résout un vrai problème d'Achat/Vente, ça crée une vraie communauté de proximité utile, et ça génère de l'entraide financière locale.
+
+
+
+
+================================================================================================================================================
+===================================================================================================================================================================================
+====================================
+
+Pour éviter cela, il n'y a aucun code PHP à changer. C'est une configuration de ton nom de domaine (DNS) chez ton hébergeur. Il te suffira de t'assurer que trois clés de sécurité sont activées dans ton panneau d'hébergement (c'est souvent automatique ou activable en un clic) :
+
+Le SPF (qui dit : "Le serveur de jevend.com a le droit d'envoyer des courriels").
+
+Le DKIM (une signature numérique qui prouve que le courriel n'a pas été falsifié).
+
+Le DMARC (qui confirme la politique de sécurité de tes envois).
+
+
+==================================
+
+POUR LE 11 JUILLET
+
+
+OK -- VOIR LE LIEN "SUIVRE" A QUOI IL SERT SUR L'INDEX.
+
+OK -- MECANISME POUR VENDU (LE CLIENT N'EST PAS OBLIGE DE CLIQUER VENDU MAIS S'IL SE FAIT ACHALER ALORS ...)
+
+OK -- MECANISME QUI PERMET AU MEMBRE DE PLACER UN "VENDU" SUR LEUR ITEM.. FACULTATIF
+
+OK -- SECTION PERFORMANCE DE L'ANNONCE DANS ESPACE MEMBRE A VOIR
+
+OK -- MECANISME QUI PERMET DEFFACER LES BANNIERE AFFERENTE AU ANNONCES CONCERNE
+
+OK -- MECANISKME MOT DE PASSE PERDU...
+
+OK -- PERMETTRE AU MEMBRE D'AJOUTER UN GROSSE BANNIERE
+
+OK -- DANS DETAILS.PHP  FILTRER LES CODE HTML DANS LA DESCRIPTION ET LES TITRE AUSSI a cause des accents &eacute;
+
+OK -- attention visuel de l'espace membre un peu decale sur mobile 
+
+OK -- PLACER LE LOGO "JEVEND.COM" EN HAUT A GAUCHE MEME FORMAT QUE LA BANDE BLEU
+
+OK -- A VERIFIER ET replacer dans section membre le pouvoir de créer une banniere et de choisir entre 10, 20, ou 30m jours
+
+OK -- A VERIFIER LES PETITE ANNONCE PEUT PAS APPARAITRE DANS LA LISTE DEROULANTE QUAND L'ANNONCE EST EN PUBLIC
+
+ok -- AJOUTER UN CHAMPS TEXTE DANS LA PARTIE MEMBRE POUR ECRIRE UN MESSAGE DE BIENVENU OU PROPOSER DES SPECIAUX DANS LES STORES..
+
+ 
+OK  -- ajouter un module POUR AJOUTER / EFFACER UNE CATEGORIE.
+
+OK -- NE PAS OUBLIER QUE NOUS AVONS AJOUTER UN CHAMPS ID_ANNONCE DANS LA TABLE ... JEVEND_ACHATS_PUBLICITES
+
+-- VIDER LES TABLES ET RECOMMENCER A INTEGRER LES ANNONCE PAR LE PROCESSUS ET FAIRE DES TESTS..
+
+-- TESTER LA COHERENCE  
+
+OK -- SUR LA PAGE DETAILS.PHP AU MOINS PLACER LE COEUR DE LA LISTE D'ENVIE
+
+OK --  VOIR LE LIEN SUIVRE SUR L'INDEX ??? CONVEERTIE EN DATE D'EXPIRATION
+
+
+OK -- MOTEUR DE RECHERCUE
+
+-- AJOUER UN ONGLET "JEU" DANS LES ESPACE MEMBRE AVEC LES LIENS VERS MES JEUX
+-- site en maintenance
+-- créer la video explicative
+-- LIMITER LES AJOUR "JE CHERCHE" DANS LE CODE
+OK -- MODULE ANNONCE INVERSÉ
+
+
+OK -- IDEE: JUSTE EN DESSOUS DE LA PLAGE DE RECHERCHE SUR SEARCH.PHP ON INSCRIT "RECHERCHER PAR RÉGION" UN LIEN MENE SUR LA NOUVELLE ET SECONDE PAGE DE RECHERCHER  SEARCH_REGION.PHP... A L'INDETIQUE DE SEARCH.PHP... SAUF QUE LE + DEROULABLE OFFRE TOUTES LES REGIONS DANS LA TABLE. AINSI SI LE CLIENT VEUT CHERCHER SEULEMENT DANS LA REGION DE RIMOUSKI IL CLIC SUR LE + ET INSCRIT DANS LA PLAGE UNE SUITE DE CARACTERE.. "ELECTRO" PAR EXEMPLE.. SI CETTE SUITE N,EXISTE PAS DANS LA REGION RIMOUSKI ALORS LE BOUTON RECHERCHER RESTE DESACTIVÉ. SI IL Y A UNE REPONSE.. LE BOUTON S'ACTIVE.. 
+
+
+
+TOUT LE SITE
+-- SITE EN MAINTENANCE
+
+SECTION INDEX
+OK -- SUR INDEX DEGROUPER LES BANNIERE RREMIUM ET PLACER DNAS UN MODULE LES 4 SLOTS PREMIUM _SLOT_PREMIUM.PHP
+OK -- verifier le lien "partager" sur index...
+OK -- verifier le nom des client non cliquable sur index qui mene a leur store
+OK -- les liens "vitrine" on perdu leur beau bouton bleu
+OK -- verifier la peremption des banniere reguliere si non ca se fera par le script _check_ban_regular.php
+OK -- placer les historique bann reguliere dans la nouvelle table .. jevend_preuve_dachat --  
+OK -- AJOUT D'UNE BANNIER COTE ADMIN DIFFUSÉ JUSTE AU DESSUS DES 4 PAVE ALIGNE EN PLEIN MILIEU EN LARGEUR DES PAVÉS... FORMAT 468X60 MODE TXT
+OK -- VERIFIER SIR LES ANNONCE PLUS JEUNE SE TROUVE SUR LE DESSUS
+OK-- ajouter dans l'espace admin le TABLEAU DES PERFORMANCES -  "B.C" POUR BANNIERE COMMERCIAL = XX, "B.R" POUR BANNIERE REGULIERE = XX,  "ANN" POUR ANNONCE = XXX, "CL.R" POUR CLIENT REGULIER =  XX, CL.C POUR CLIENT COMMERCIAL = XXX 
+OK ATT: quand on mettra le site sur serveur voir a modifier le code envoi mail et aussi l'image de la banniere
+OK -- REMANIER LA CARTE DDES VILLE ET VILLAGES DE LA DBASE 
+
+-- AJOUTER AU MOTEUR DE RECHERCHE LA POSSIBILITE DE CHERCHER DANS TOUTE LA REGION DU CLIENT (PAR REGION)
+
+OK -- REMANIER LES VILLE ET VILLA AINSI QUE LES REGIONS DANS LES TABLE JEVEND_VILLES ET JEVEND_REGION
+
+OK Le nettoyage géographique : Supprimer jevend_villes puis jevend_regions.
+OK La reconstruction propre :
+
+OK -- REVOIR LE MOTEUR DE RECHERCHE PARTIE QUI "POURRAIT VOUS INTERESSER"
+
+-- PERMETTRE AU MEMBRE DE MODIFIER LEUR MAIL + CEL
+-- COMMENT EVITER QUE LE CLIENT ENVOI 2 FOIS LE MEME MESSAGE
+
+SECTION ADMIN
+
+ok -- DANS LA PARTIE ADMIN GESTION DES PRIX BANNIERE COMMERCANT AUSSI
+
+-- traitement_simulation_stripe.php 
+
+-- TERMINER DANS L'ADMIN LA GESTION DES PAIEMENTS...
+
+OK -- plier la liste des membres DANS ONGLET MEMBRE DANS PANNEAU ADMIN - UN MUST
+
+-- AJOUTER UNE F.A.Q - TIRE: "ACCELERATEUR DE VENTE"
+
+-- AJOUTER UN ONGLET JEU DNAS LA PAGE DES MEMBRE..
+
+OK -- CRÉER MODULE _delete_je_cherche.php au bout de xx jours.. IL FAUT UN MOMENT DONNER NETTOYER LA TABLES DES RECHERCHE
+
+OK -- AJOUTER MODIFICATION DES COORDONNES DANS ESPACE_MEMBRE_PRO.PHP AVEC LE MODULE "edit_membre_pro.php"
+
+OK -- DANS LES LISTE D'ENVIE, FAIRE EN SORTE QUE LES VENTE FLASH APPARAISE
+
+OK -- SEPARER LE MOTEUR DE RECHERCHE DU LISTING DANS ZONE_RECHERCHE.PHP.. le nom du module de l'affichage de la zone de recherche.... _zone_recherche_liste.php
+
+-- retoucher le moteur de "je cherche"... DESACTIVER LE BOUTON SI AUCUNE RECHERCHE DANS LA VILLE...
+
+OK -- AJOUTER UNE STATS QUI CALCUL LE Nombre D'ANNONCE PAR JOUR.
+
+OK -- VERIFIER LA SECURITE DE CONNEXION ET SE CONNECTER.
+
+-- CONCERNANT LE CHAT: EFFACER LA DISCUSSION DE CETTE ANONCE SI ELLE EST VENDU.
+
+SECTION COMMERCANT
+
+OK -- DANS L'ONGLET BANNIERE, ORGANISER PAR CAMPAGNE DATE GROUPE DANS UN PLUS EX: + CAMPAGNE 2026 MOIS DE JUILLET
+OK -- LE + PERMET D'ALLONGER TOUTES LES BANNIERE CONTENU DANS JUILLET 2026 - CE QUI SAUVE DE LA PLACE --  LIEN POUR LES FACTURES
+
+
+TODAY - AJOUR DE FICHIER, MSQL, CODE, ETC ..
+
+AJOUTÉ 
+OK / modifier ... connexion_execute.php, STYLE.CSS, inscription_execute.php, connexion.php, inscription.php
+OK MEMORY.CSS .. _MEMORY_ENGINE.JS, MEMORY_KIT.JS... espace_membre.php
+
+================================================
+
+
+-- DISCUSSION ET ANALYSE: MAINTENANT CONCERNANT LES PAIEMENTS.. J'AVAIS PENSER A UNE CHOSE TANT QU'IL SERA EN LOCAL. ON VA TRAVAILLER DANS UN NOUVEAU FICHIER POUR LES PAIEMENT.. ET JE VAIS GARDER L,ANCIEN (QUI DEVIENNE LOCAL) TANT QU'IL SERA PAS EN LIGNE. ET QUAND JE LE METTRAI EN LIGNE JE DEVRAIS REMPLACER LE NOM DE FICHIER DANS L'INCLUDE DES FICHIER EN QUESTION.  AU LIEU DE FARFOUILLER DANS LE CODE...  NOUS POURRIONS RENDRE CA CONFORTABLE POUR L'ADMIN DU SITE.. C.A.D EN CHOISISSANT LE FICHIER A RENDRE EFFECTIF. ON VA GARDER LES 2 FICHIER ACTUEL QUI SONT "traitement_paiement_pro.php .. ET  "traitement_simulation_stripe.php" ... JE VAIS REPRENDRE CHACUN DE CES FICHIER ET LES RENOMMER "traitement_paiement_pro_OFFICIEL.php" ET "traitement_simulation_stripe_OFFICIEL.php"... OU ET COMMENT AFFICHER DANS L,ESPACE ADMIN... ON PLACERA CES CHOIX DANS UN MENU DEROULANT SITUE DANS L'ONGLET TARIFS PUBLICITAIRE JUSTE EN BAS DES AJUSTEMENT DE PRIX DES BANN PRO ET LE BOUTOM  ENREGISTRER TOUTES LES INFORMATIONS... NOUS DEVRONS SANS DOUTE CRÉER UNE NOUVELLE TABLE POUR ENREGISTRER LE NOM DES FICHIERS... A MOINS QUE TU AIES UNE IDEE BIEN PLUS ELEGANTE QUE CA ...
+
+
+STRIPE TEST
+
+CLE SECRETE
+sk_test_51TYBh0JBFf7KXMewM0Rm49CHacyBCz90jFCj5nBBEoG0eXHTGQgdYRUmlSgx3asSaxpnft7K88uCuTqFarwIyxq200VtpAwxpN
+
+CLE PUBLIQUE
+pk_test_51TYBh0JBFf7KXMewmpx51Ie4EiEavTlf8nzyRCaPfNwb7AnR21mr4yOXuycnNutQh4MwAzz6H5NmTvCxEEWZWyk4002HKm46bv
+
+traitement_paiement_pro_LOCAL.php
+traitement_paiement_pro.php  - ROUTER
+traitement_simulation_stripe.php
+traitement_simulation_stripe_LOCAL.php
+traitement_paiement_pro_OFFICIEL.php
+_prospace_banniere.php
+confirmation_paiement_pro.php
+
+carte no ... 4242 4242 4242 4242
+
+
+
+
+==========================================
+
+
+MISE EN PLACE DES PRIX DYNAMIQUE
+
+LA PROCEDURE DE MISE EN PLACE
+
+1️⃣ Base de Données (MariaDB)
+Création d'une table dédiée jevend_tarifs_publicites :
+
+Colonnes : id_tarif, type_produit (supreme, premium, reguliere), prix_par_jour (DECIMAL 10,2), duree_min_jours (INT), actif (TINYINT).
+
+Insertion initiale : Remplissage des valeurs par défaut (1,00 $ / 5,00 $ / 10,00 $).
+
+2️⃣ Espace Panneau d'Administration (panneau.php / Module Admin)
+Création d'une interface de gestion des prix : Un formulaire dans l'espace Admin permettant de lire et de mettre à jour dynamiquement la table jevend_tarifs_publicites.
+
+3️⃣ Fichiers PHP & Formulaires (Côté Membre & Traitement)
+partials/_membre-banniere.php :
+
+Remplacer les textes de prix écrits en dur dans le <select> par des variables dynamiques extraites de la base de données.
+
+Injecter les tarifs sous forme d'attributs data-prix et data-min dans les options HTML.
+
+verification_file_queue.php ou script de calcul :
+
+Transmettre les prix actualisés au JavaScript pour que le recalcul du total estimé (recalculerPrix()) se fasse en temps réel sur les vrais montants.
+
+traitement_simulation_stripe.php (ou tunnel Stripe) :
+
+Lire obligatoirement le prix en base de données lors de la soumission du formulaire (pour empêcher tout risque de manipulation du montant par l'utilisateur via la console F12).
+
+
+=========================================
+
+IDEE POUR VITRINE PRO
+
+🏛️ 1. La Distinction du Compte (Niveau Base de Données)
+Au lieu de recoder des pages séparées, tout commence dans la table jevend_utilisateurs :
+
+Ajout d'une colonne : type_compte ENUM('particulier', 'pro') DEFAULT 'particulier'.
+
+Pour les membres PRO : Ajout de champs d'entreprise (nom_entreprise, NEQ_ou_TPS, site_web, adresse_commerciale, logo).
+
+Ce que ça change :
+
+Un particulier publie une annonce à la fois.
+
+Un membre PRO bénéficie d'une "Boutique Officielle" (sa page store.php?id=X devient un vrai mini-site d'entreprise avec son logo, ses heures d'ouverture et son lien web).
+
+📦 2. Le Modèle de Forfaits PRO (Lots & Quotas)
+Les commerçants n'achètent pas une annonce à la fois à 1 $, ils achètent de la capacité d'inventaire simultané :
+
+Forfait PRO 5 Annonces : Peut avoir jusqu'à 5 annonces actives en tout temps (ex: 29,99 $ / mois).
+
+Forfait PRO 20 Annonces : Peut avoir jusqu'à 20 annonces actives en tout temps (ex: 79,99 $ / mois).
+
+Forfait PRO Illimité / Commerce : Annonces illimitées + boutique personnalisée (ex: 149,99 $ / mois).
+
+⚙️ Comment le coder proprement ?
+On crée une table simple jevend_abonnements_pro :
+
+Quand un PRO paie via Stripe mensuel, son quota (max_annonces_actives) est mis à jour.
+
+Lors de la création d'une annonce, un simple COUNT(*) vérifie si le membre a le droit de publier selon son quota. Zero usine à gaz !
+
+👁️ 3. L'Affichage sur l'Index (Sans surcharger le fil public)
+L'index principal demeure le cœur du réseau. Les annonces des PRO et des Particuliers coexistent dans le même flux, mais avec des avantages visuels subtils pour les PRO :
+
+Badge d'Authentification : Un badge distinctif 🏢 PRO ou 💼 Commerce apparaît sur les cartes d'annonces des professionnels pour inspirer confiance aux acheteurs.
+
+Bouton de Filtrage sur l'Index : Un petit sélecteur en haut du flux public :
+[ Tous ] [ Particuliers ] [ 🏢 Commerces Locaux ].
+
+Remontée Automatique (Auto-Bump) : Au lieu de bloquer l'index avec des bannières permanentes, les forfaits PRO incluent un "rafraîchissement" automatique de leurs annonces (ex: leur annonce remonte en tête de liste tous les 7 jours).
+
+🏪 4. Une Page Dédiée : "Le Répertoire des Commerces Locaux"
+Pour offrir un vrai argument de vente aux commerçants de Matane et de la région, on peut créer une page unique commerces.php (accessible depuis le menu principal) :
+
+Il s'agit d'un annuaire des boutiques et artisans membres de jevend.com.
+
+Chaque commerce y figure sous forme de carte d'entreprise avec son logo, son secteur d'activité, sa ville et un lien direct vers sa vitrine complète.
+
+🛠️ Résumé de l'impact technique :
+Aucune régression sur le code existant (les cartes _card.php, le scroll infini et les bannières restent intacts).
+
+Évolutivité Stripe facile : Stripe gère très bien les abonnements mensuels récurrents (Stripe Subscriptions).
+
+===========================================================================================================
+===========================================================================================================
+===========================================================================================================
+===========================================================================================================
+===========================================================================================================
+===========================================================================================================
+
+
+La Zone Je Cherche
+
+
+CREATE TABLE jevend_recherches (
+    id_recherche INT(11) AUTO_INCREMENT PRIMARY KEY,
+    id_utilisateur INT(11) NOT NULL,
+    id_categorie INT(11) NOT NULL,
+    id_ville INT(11) NOT NULL,
+    titre_recherche VARCHAR(100) NOT NULL,
+    description TEXT NULL,
+    budget_max DECIMAL(10,2) NULL,
+    image_reference VARCHAR(255) NULL,
+    statut ENUM('actif', 'trouve', 'expire', 'inactif') DEFAULT 'actif',
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_expiration DATETIME NOT NULL,
+    FOREIGN KEY (id_utilisateur) REFERENCES jevend_utilisateurs(id_utilisateur) ON DELETE CASCADE,
+    FOREIGN KEY (id_categorie) REFERENCES jevend_categories(id_categorie),
+    FOREIGN KEY (id_ville) REFERENCES jevend_villes(id_ville)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE jevend_reponses_recherche (
+    id_reponse INT(11) AUTO_INCREMENT PRIMARY KEY,
+    id_recherche INT(11) NOT NULL,
+    id_vendeur INT(11) NOT NULL,
+    id_annonce_associee INT(11) NULL, -- Si le vendeur a déjà une annonce active
+    message_vendeur TEXT NULL,
+    date_reponse TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_recherche) REFERENCES jevend_recherches(id_recherche) ON DELETE CASCADE,
+    FOREIGN KEY (id_vendeur) REFERENCES jevend_utilisateurs(id_utilisateur) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+jevend.com/
+│
+├── zone_cherche.php           ──► Le fil public de toutes les demandes "Je Cherche"
+├── poster_recherche.php       ──► Le formulaire où l'acheteur poste sa demande
+├── details_recherche.php      ──► La fiche détaillée d'un besoin + Formulaire "J'ai cet objet !"
+├── traiter_recherche.php      ──► Script PHP (POST) qui enregistre la recherche & la photo
+├── repondre_recherche.php     ──► Script PHP/AJAX (POST) qui envoie la proposition du vendeur
+│
+└── partials/
+    ├── _zone_cherche_card.php ──► Le composant réutilisable pour afficher une carte de recherche
+    └── _nav_publique.php      ──► (Mise à jour) Ajout du bouton orange "🎯 Je Cherche"
+
+
+📁 La véritable architecture du module "Je Cherche" :
+poster_recherche.php : Le fichier unique qui gère l'affichage du formulaire de recherche, la vérification des quotas, la compression/upload de la photo de référence (le cas échéant) et l'insertion en base de données.
+
+zone_cherche.php : Le fil d'actualité public de toutes les demandes « Je Cherche ».
+
+details_recherche.php : La fiche détaillée d'un besoin spécifique avec le formulaire permettant à un vendeur de proposer son article (« J'ai cet objet ! »).
+
+repondre_recherche.php : Le script PHP/AJAX (POST) qui enregistre la proposition du vendeur dans la table jevend_reponses_recherche.
+
+partials/_zone_cherche_card.php : Le composant d'affichage des cartes pour le fil public.
+
+
+
+3. Rôle Détaillé de Chaque Fichier
+1. zone_cherche.php (Page Vitrine)
+Visualisation : Affiche la grille des recherches d'acheteurs sous forme de cartes d'action.
+
+Filtres : Possède son propre petit filtre rapide par Ville et par Catégorie.
+
+Badges : Affiche le budget max de l'acheteur en ambre/orange et le nombre de jours restants avant expiration.
+
+2. poster_recherche.php (Formulaire Acheteur)
+Champs : Titre du besoin, Catégorie, Ville (pré-sélectionnée si connecté), Budget max estimé, Description et Upload d'une photo d'illustration facultative.
+
+Pre-fill intelligent : Si le visiteur arrive depuis un lien de search.php, le champ « Titre » se pré-remplit automatiquement avec ce qu'il cherchait.
+
+3. details_recherche.php (Fiche & Mise en Relation)
+Affiche la demande complète de l'acheteur.
+
+Contient le gros bouton vert 💬 J'ai cet objet !.
+
+Au clic, si le vendeur est connecté, un modal ou un bloc s'ouvre pour lui permettre de choisir :
+
+Option 1 : « Associer une de mes annonces existantes ».
+
+Option 2 : « Envoyer un message direct avec mon prix et ma photo ».
+
+4. partials/_zone_cherche_card.php (Composant Carte)
+Fichier inclus dans zone_cherche.php (et potentiellement sur la page d'accueil index.php).
+
+Harmonisé avec le style général de tes cartes d'annonces, mais différencié par un liseré ou un badge 🎯 DEMANDE ACHETEUR.
+
+🔗 4. Points d'Interconnexion avec tes Fichiers Existant
+partials/_nav_publique.php :
+
+Ajout du bouton :
+
+<a href="poster_recherche.php" class="btn-zone-cherche">🎯 Je Cherche...</a>
+
+search.php :
+
+Quand $total_resultats == 0, on injecte une bannière :
+
+« Pas de résultat pour "..." ? Postez votre recherche en 1 clic ! »
+
+avec un lien vers poster_recherche.php?q=MOT_CLE.
+
+publier.php (Dépot d'annonce vendeur) :
+
+Une requête rapide va compter s'il existe des acheteurs dans la catégorie choisie :
+
+« 💡 2 acheteurs cherchent actuellement ce type de bien à Matane ! »
+
+

@@ -1,0 +1,165 @@
+/* =============================================================================
+   NOM DU SCRIPT : style_panneau.css
+   REVISION : 1.1 - Intégration de la typographie Arial globale, de la couleur #1e293b et de la classe .admin-body pour autonomie totale sans style.css
+   ============================================================================= */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* --- VERROUILLAGE, TYPOGRAPHIE ET COMPORTEMENT DE BASE --- */
+html, body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+}
+
+.admin-body {
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: block;
+    min-height: 100vh;
+}
+
+.admin-conteneur {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-bloc-vide {
+    background-color: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 40px;
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* --- BARRE DU HAUT HAUTE VISIBILITÉ --- */
+.admin-barre-haut {
+    background-color: #0f172a;
+    color: #ffffff;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.admin-barre-haut h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.statut-admin {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+.statut-admin strong {
+    color: #38bdf8;
+}
+
+/* --- STYLE DES ONGLETS DE L'ADMINISTRATION --- */
+.admin-navigation-onglets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.onglet-btn {
+    background-color: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 10px 12px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.onglet-btn:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.onglet-btn.actif {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+}
+
+/* Gestion de l'affichage des sections */
+.section-panneau {
+    display: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.section-panneau.active {
+    display: block;
+}
+
+/* --- CORRECTIFS STRICTS ADAPTATIFS POUR CELLULAIRE --- */
+@media (max-width: 900px) {
+    .admin-barre-haut {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 15px !important;
+        gap: 8px !important;
+    }
+
+    .admin-barre-haut h1 {
+        font-size: 1.2rem !important;
+    }
+
+    .admin-conteneur {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        margin-top: 15px !important;
+    }
+
+    .admin-navigation-onglets {
+        overflow-x: auto !important;
+        padding-bottom: 8px !important;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .admin-navigation-onglets::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .onglet-btn {
+        flex: none !important;
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+    }
+}

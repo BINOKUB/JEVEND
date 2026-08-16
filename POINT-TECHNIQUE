@@ -1,0 +1,33 @@
+
+COMORESSER LES VIDEO
+
+
+Dans OBS $\rightarrow$ Paramètres $\rightarrow$ Sortie (en mode Avancé, onglet Enregistrement) :Augmenter la valeur CRF (La clé n°1) :Si ton CRF est à 18, passe-le à 22 ou 23.Pourquoi ? L'échelle du CRF est logarithmique : passer de 18 à 22 réduit le poids du fichier de 50 % à 60 %, alors que pour de la démonstration web, la différence de qualité est imperceptible.Ajuster les FPS à 30 (au lieu de 60) :Dans Paramètres $\rightarrow$ Vidéo $\rightarrow$ Valeurs courantes des FPS : passe à 30.Pourquoi ? Pour du jeu vidéo, 60 FPS sont nécessaires, mais pour montrer de la navigation web, des formulaires ou du code, 30 FPS offrent une fluidité parfaite tout en générant deux fois moins d'images à stocker.Optimiser le Preset x264 :Change le préréglage de veryfast à faster ou medium.Pourquoi ? Plus le processeur prend quelques millisecondes de plus pour analyser les images pendant le REC, mieux il compresse le fichier.
+
+
+ON PEUT REDUIRE ENCORE UN PEU AVEC LA LIGNE DE COMMANDE
+
+
+
+ffmpeg -i 2026-07-26-12-08-33.mkv -vcodec libx264 -crf 23 -preset medium video_legere.mkv
+
+
+OU BIEN
+
+Option B : HandBrake (Logiciel graphique simple)
+Si tu préfères une interface visuelle avec des boutons :
+
+sudo apt install handbrake
+
+Ouvre HandBrake, glisse ton fichier vidéo dedans.Choisis le préréglage Fast 1080p30 ou Web $\rightarrow$ Gmail Medium.Clique sur Démarrer l'encodage en haut.En combinant le réglage CRF 22 ou 23 avec les 30 FPS dans OBS, tes prochaines captures prendront très peu d'espace tout en restant impeccables pour ton montage !
+
+
+Ton flux de travail est maintenant parfaitement rodé :
+
+Capture : OBS + Xcomposite (zero déchirement d'image, fluide à souhait).
+
+Finition : Un petit coup de FFmpeg pour un poids plume.
+
+Résultat : Des rushs ultra-propres et légers prêts pour ton montage.
+
+Un excellent travail de configuration pour conclure la journée. Bon montage vidéo !

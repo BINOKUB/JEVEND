@@ -1,0 +1,439 @@
+/* =============================================================================
+// NOM DU SCRIPT : style_index.css
+// REVISION : 1.2 - Intégration des styles de la boutique (store.php) pour uniformisation complète CSS/HTML
+// ============================================================================= */
+
+/* 1. CARROUSEL SUPRÊME B2B (HAUT DE PAGE) */
+.carrousel-supreme-wrapper { 
+    position: relative; 
+    width: 100%; 
+    max-width: 1200px; 
+    margin: 20px auto; 
+    overflow: hidden; 
+    border-radius: 10px; 
+    border: 1px solid #1e293b; 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); 
+    background: #0f172a; 
+}
+.carrousel-supreme-container { 
+    display: flex; 
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
+    width: 100%; 
+}
+.carrousel-slide { 
+    min-width: 100%; 
+    box-sizing: border-box; 
+    position: relative; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: flex-end; 
+    justify-content: flex-start; 
+    aspect-ratio: 3 / 1; 
+    width: 100%; 
+    background-size: contain; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-color: #0f172a; 
+}
+.carrousel-slide-overlay { 
+    position: absolute; 
+    inset: 0; 
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.3) 65%, transparent 100%); 
+}
+.carrousel-slide-content { 
+    position: relative; 
+    z-index: 2; 
+    padding: 25px 30px; 
+    color: #ffffff; 
+    max-width: 80%; 
+}
+.carrousel-slide-content h2 { 
+    margin: 6px 0; 
+    font-size: 1.8rem; 
+    color: #ffffff; 
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6); 
+}
+.carrousel-slide-content p { 
+    margin: 0 0 12px 0; 
+    font-size: 1rem; 
+    color: #cbd5e1; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8); 
+}
+.carrousel-btn-action { 
+    display: inline-block; 
+    background: #2563eb; 
+    color: #ffffff; 
+    padding: 8px 20px; 
+    border-radius: 6px; 
+    font-size: 0.9rem; 
+    font-weight: bold; 
+    text-decoration: none; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3); 
+    transition: background 0.2s ease; 
+}
+.carrousel-btn-action:hover { 
+    background: #1d4ed8; 
+}
+.carrousel-nav-btn { 
+    position: absolute; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    background: rgba(15, 23, 42, 0.6); 
+    color: #ffffff; 
+    border: none; 
+    font-size: 1.4rem; 
+    padding: 10px 14px; 
+    cursor: pointer; 
+    border-radius: 50%; 
+    z-index: 10; 
+    transition: background 0.2s ease; 
+}
+.carrousel-nav-btn:hover { 
+    background: rgba(37, 99, 235, 0.9); 
+}
+.carrousel-nav-btn.prev { left: 15px; }
+.carrousel-nav-btn.next { right: 15px; }
+.carrousel-puces { 
+    position: absolute; 
+    bottom: 15px; 
+    right: 25px; 
+    display: flex; 
+    gap: 8px; 
+    z-index: 10; 
+}
+.puce-dot { 
+    width: 10px; 
+    height: 10px; 
+    border-radius: 50%; 
+    background: rgba(255, 255, 255, 0.4); 
+    cursor: pointer; 
+    transition: all 0.3s ease; 
+}
+.puce-dot.active { 
+    background: #38bdf8; 
+    width: 26px; 
+    border-radius: 10px; 
+}
+
+/* 2. GRILLE ET MINI-CARROUSELS PREMIUM (4 PAVÉS) */
+.container-premium-fige { 
+    max-width: 1200px; 
+    margin: 20px auto 10px auto; 
+    padding: 0 15px; 
+}
+.grille-premium { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 15px; 
+}
+.carte-premium-figee { 
+    background: #ffffff; 
+    border: 2px solid #3b82f6; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    position: relative; 
+    display: flex; 
+    flex-direction: column; 
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15); 
+}
+.mini-carrousel-wrapper { 
+    position: relative; 
+    width: 100%; 
+    overflow: hidden; 
+    background: #0f172a; 
+    aspect-ratio: 3 / 2; 
+}
+.mini-carrousel-container { 
+    display: flex; 
+    transition: transform 0.5s ease-in-out; 
+    width: 100%; 
+    height: 100%; 
+}
+.mini-slide { 
+    min-width: 100%; 
+    height: 100%; 
+    box-sizing: border-box; 
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    cursor: pointer; 
+    position: relative; 
+}
+.mini-slide-overlay { 
+    position: absolute; 
+    inset: 0; 
+    background: rgba(15, 23, 42, 0.35); 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    padding: 10px; 
+    color: #ffffff; 
+}
+.mini-nav-btn { 
+    position: absolute; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    background: rgba(15, 23, 42, 0.6); 
+    color: #ffffff; 
+    border: none; 
+    font-size: 1rem; 
+    padding: 4px 8px; 
+    cursor: pointer; 
+    border-radius: 50%; 
+    z-index: 5; 
+}
+.mini-nav-btn.prev { left: 5px; }
+.mini-nav-btn.next { right: 5px; }
+
+/* 3. FLUX D'ANNONCES & BANNIÈRES RÉGULIÈRES */
+.admin-conteneur { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 0 15px; 
+    box-sizing: border-box; 
+}
+.flux-grille { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+    gap: 20px; 
+    margin-top: 20px; 
+}
+.carte-annonce { 
+    background: #ffffff; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    transition: transform 0.2s ease; 
+}
+.carte-annonce:hover { 
+    transform: translateY(-4px); 
+}
+.carte-image-zone { 
+    width: 100%; 
+    height: 180px; 
+    background-color: #ffffff; 
+    border-bottom: 1px solid #f1f5f9; 
+    overflow: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 5px; 
+    box-sizing: border-box; 
+    position: relative; 
+}
+.carte-image-zone img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+}
+.carte-corps { 
+    padding: 12px; 
+    flex-grow: 1; 
+    display: flex; 
+    flex-direction: column; 
+}
+.carte-vendeur-ligne { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    font-size: 0.85rem; 
+    margin-bottom: 6px; 
+}
+.vendeur-nom { 
+    font-weight: bold; 
+    color: #2563eb; 
+}
+.carte-meta-ligne { 
+    font-size: 0.75rem; 
+    color: #64748b; 
+    margin-bottom: 4px; 
+}
+.badge-urgence-carte { 
+    font-size: 0.7rem; 
+    font-weight: bold; 
+    color: #c2410c; 
+    background-color: #fff7ed; 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    border: 1px dashed #f97316; 
+    margin-bottom: 6px; 
+    display: inline-block; 
+    width: fit-content; 
+}
+.carte-titre { 
+    font-size: 1rem; 
+    font-weight: bold; 
+    color: #1e293b; 
+    margin: 0 0 6px 0; 
+    display: -webkit-box; 
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical; 
+    overflow: hidden; 
+    height: 2.4rem; 
+}
+.carte-prix { 
+    font-size: 1.1rem; 
+    font-weight: bold; 
+    color: #16a34a; 
+    margin-top: auto; 
+}
+.carte-actions { 
+    display: flex; 
+    border-top: 1px solid #f1f5f9; 
+    padding: 8px 12px; 
+    gap: 8px; 
+    align-items: center; 
+    justify-content: space-between; 
+}
+
+/* BOUTONS BLEUS DE L'INDEX & DU STORE (VITRINE ET VITRINE SPONSORISÉE) */
+.btn-action {
+    display: inline-block;
+    background-color: #2563eb;
+    color: #ffffff !important;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-decoration: none;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.btn-action:hover {
+    background-color: #1d4ed8;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+.bloc-banniere-pub { 
+    grid-column: 1 / -1; 
+    background: #ffffff; 
+    border: 1px solid #cbd5e1; 
+    border-radius: 8px; 
+    padding: 20px; 
+    text-align: center; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); 
+    margin: 15px 0; 
+}
+.banniere-badge { 
+    font-size: 0.75rem; 
+    font-weight: bold; 
+    letter-spacing: 0.05em; 
+    text-transform: uppercase; 
+    padding: 4px 8px; 
+    border-radius: 4px; 
+    background-color: #f8fafc; 
+    border: 1px solid #e2e8f0; 
+    color: #475569; 
+}
+.banniere-slogan { 
+    font-size: 1.2rem; 
+    font-weight: bold; 
+    font-style: italic; 
+    color: #1e293b; 
+    margin: 8px 0; 
+}
+.flux-pub-image-zone { 
+    width: 100%; 
+    max-width: 260px; 
+    height: 150px; 
+    margin: 12px auto 0 auto; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    overflow: hidden; 
+    background: #f8fafc; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 6px; 
+    padding: 4px; 
+}
+.flux-pub-image-zone img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+}
+
+.btn-favoris { 
+    background: none; 
+    border: none; 
+    cursor: pointer; 
+    font-size: 1.25rem; 
+    padding: 0; 
+    transition: transform 0.1s ease; 
+}
+.btn-favoris:active { 
+    transform: scale(1.3); 
+}
+.mini-badge-vendu { 
+    position: absolute; 
+    top: 10px; 
+    left: 10px; 
+    background-color: #dc2626; 
+    color: #ffffff; 
+    padding: 3px 8px; 
+    font-size: 0.75rem; 
+    font-weight: bold; 
+    border-radius: 4px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15); 
+    text-transform: uppercase; 
+    z-index: 5; 
+}
+
+/* 4. STYLES SPÉCIFIQUES À LA BOUTIQUE (STORE.PHP) */
+.store-header-zone {
+    width: 100%;
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: #ffffff;
+    padding: 40px 20px;
+    text-align: center;
+    border-bottom: 5px solid #16a34a; 
+    box-sizing: border-box;
+}
+.nav-bar-store { 
+    max-width: 1200px; 
+    margin: 15px auto 0 auto; 
+    padding: 0 15px; 
+}
+.btn-back { 
+    display: inline-block; 
+    text-decoration: none; 
+    color: #2563eb; 
+    font-weight: bold; 
+    font-size: 0.9rem; 
+}
+.mot-bienvenue-box {
+    max-width: 1200px;
+    margin: 20px auto 0 auto;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+.mot-bienvenue-contenu {
+    background-color: #ffffff;
+    border-left: 5px solid #1e3a8a;
+    border-top: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px;
+    border-radius: 0 8px 8px 0;
+    font-size: 1rem;
+    color: #334155;
+    line-height: 1.6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    white-space: pre-line;
+}
+
+@media (max-width: 768px) { 
+    .carrousel-slide { min-height: 220px; }
+    .carrousel-slide-content { max-width: 100%; padding: 15px; }
+    .carrousel-slide-content h2 { font-size: 1.2rem; }
+    .grille-premium { grid-template-columns: repeat(2, 1fr); gap: 10px; } 
+    .flux-grille { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 5px; } 
+    .carte-image-zone { height: 130px; } 
+    .banniere-slogan { font-size: 1.1rem; }
+    .carte-actions { padding: 8px 6px; gap: 4px; }
+}

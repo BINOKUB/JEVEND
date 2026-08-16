@@ -1,0 +1,224 @@
+/* =============================================================================
+   NOM DU SCRIPT : chat_membre.css
+   REVISION     : 1.2 - Intégration des avatars et noms d'expéditeurs
+   ============================================================================= */
+
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+body.admin-body {
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: block;
+    min-height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Conteneur principal du tchat */
+.chat-box-container {
+    max-width: 600px;
+    margin: 20px auto;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.chat-header {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 15px;
+    text-align: center;
+}
+
+.chat-header h3 { 
+    margin: 0 0 5px 0; 
+    font-size: 1.1rem; 
+}
+
+.chat-header p { 
+    margin: 0; 
+    font-size: 0.8rem; 
+    color: #94a3b8; 
+}
+
+.chat-warning-bar {
+    background: #fffbe3;
+    border-bottom: 1px solid #fef08a;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    color: #713f12;
+    text-align: center;
+}
+
+.chat-body {
+    padding: 15px;
+    height: 380px;
+    overflow-y: auto;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-sizing: border-box;
+}
+
+/* Ligne complète de message avec avatar */
+.chat-msg-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: 85%;
+}
+
+.chat-msg-wrapper.msg-wrapper-me {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.chat-msg-wrapper.msg-wrapper-other {
+    align-self: flex-start;
+    flex-direction: row;
+}
+
+/* Petit avatar rond */
+.chat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #cbd5e1;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.msg-wrapper-me .chat-avatar {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+/* Bloc d'information du message (Nom + Bulle) */
+.msg-content-block {
+    display: flex;
+    flex-direction: column;
+}
+
+.msg-wrapper-me .msg-content-block {
+    align-items: flex-end;
+}
+
+.msg-wrapper-other .msg-content-block {
+    align-items: flex-start;
+}
+
+.msg-author-name {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #64748b;
+    margin-bottom: 3px;
+    padding: 0 4px;
+}
+
+.msg-bubble {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.msg-me {
+    background: #2563eb;
+    color: #ffffff;
+    border-bottom-right-radius: 2px;
+}
+
+.msg-other {
+    background: #e2e8f0;
+    color: #1e293b;
+    border-bottom-left-radius: 2px;
+}
+
+.msg-time {
+    font-size: 0.7rem;
+    opacity: 0.75;
+    display: block;
+    margin-top: 4px;
+    text-align: right;
+}
+
+.chat-footer {
+    padding: 15px;
+    border-top: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+.chat-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-sizing: border-box;
+    resize: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.chat-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.btn-chat-send {
+    width: 100%;
+    background: #16a34a;
+    color: #ffffff;
+    border: none;
+    padding: 11px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-chat-send:hover {
+    background: #15803d;
+}
+
+/* =============================================================================
+   ADAPTATION MOBILE
+   ============================================================================= */
+@media (max-width: 768px) {
+    body.admin-body {
+        padding: 0 !important;
+    }
+
+    .chat-box-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border-left: none;
+        border-right: none;
+    }
+
+    .chat-msg-wrapper {
+        max-width: 92%;
+    }
+}

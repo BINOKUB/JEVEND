@@ -1,0 +1,68 @@
+<?php
+
+// File generated from our OpenAPI spec
+
+namespace Stripe\FinancialConnections;
+
+/**
+ * A Transaction represents a real transaction that affects a Financial Connections Account balance.
+ *
+ * @property string $id Unique identifier for the object.
+ * @property string $object String representing the object's type. Objects of the same type share the same value.
+ * @property string $account The ID of the Financial Connections Account this transaction belongs to.
+ * @property int $amount The amount of this transaction, in cents (or local equivalent).
+ * @property null|((object{money_movement: null|(object{confidence_level: null|string, detailed_label: null|string, primary_label: null|string}&\Stripe\StripeObject), personal_finance: null|(object{confidence_level: null|string, detailed_label: null|string, primary_label: null|string}&\Stripe\StripeObject), type: string}&\Stripe\StripeObject))[] $classifications Classification labels for this transaction, one entry per subscribed use case.
+ * @property string $currency Three-letter <a href="https://www.iso.org/iso-4217-currency-codes.html">ISO currency code</a>, in lowercase. Must be a <a href="https://stripe.com/docs/currencies">supported currency</a>.
+ * @property string $description The description of this transaction.
+ * @property null|(object{merchant: (object{confidence_level: null|string, name: null|string}&\Stripe\StripeObject)}&\Stripe\StripeObject) $enrichments Enriched merchant information for this transaction.
+ * @property bool $livemode If the object exists in live mode, the value is <code>true</code>. If the object exists in test mode, the value is <code>false</code>.
+ * @property string $status The status of the transaction.
+ * @property (object{posted_at: null|int, void_at: null|int}&\Stripe\StripeObject) $status_transitions
+ * @property int $transacted_at Time at which the transaction was transacted. Measured in seconds since the Unix epoch.
+ * @property string $transaction_refresh The token of the transaction refresh that last updated or created this transaction.
+ * @property int $updated Time at which the object was last updated. Measured in seconds since the Unix epoch.
+ */
+class Transaction extends \Stripe\ApiResource
+{
+    const OBJECT_NAME = 'financial_connections.transaction';
+
+    const STATUS_PENDING = 'pending';
+    const STATUS_POSTED = 'posted';
+    const STATUS_VOID = 'void';
+
+    /**
+     * Returns a list of Financial Connections <code>Transaction</code> objects.
+     *
+     * @param null|array{account: string, ending_before?: string, expand?: string[], limit?: int, starting_after?: string, transacted_at?: array|int, transaction_refresh?: array{after: string}} $params
+     * @param null|array|string $opts
+     *
+     * @return \Stripe\Collection<Transaction> of ApiResources
+     *
+     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     */
+    public static function all($params = null, $opts = null)
+    {
+        $url = static::classUrl();
+
+        return static::_requestPage($url, \Stripe\Collection::class, $params, $opts);
+    }
+
+    /**
+     * Retrieves the details of a Financial Connections <code>Transaction</code>.
+     *
+     * @param array|string $id the ID of the API resource to retrieve, or an options array containing an `id` key
+     * @param null|array|string $opts
+     *
+     * @return Transaction
+     *
+     * @throws \Stripe\Exception\ApiErrorException if the request fails
+     */
+    public static function retrieve($id, $opts = null)
+    {
+        $opts = \Stripe\Util\RequestOptions::parse($opts);
+        $instance = new static($id, $opts);
+        $instance->refresh();
+
+        return $instance;
+    }
+}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Bannière - jevend.com</title>
+    <style>
+        /* Style général de la page (clair et pro) */
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #0f172a;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+
+        /* --- STRUCTURE DE LA BANNIÈRE PREMIUM (jevend.com) --- */
+        .banniere-premium {
+            width: 728px;
+            height: 90px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 6px;
+            border: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* L'accent de lumière Cyan/Électrique */
+        .banniere-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #00f3ff;
+        }
+
+        /* --- TEXTES DE LA BANNIÈRE --- */
+        .banniere-texte {
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .banniere-prix {
+            color: #00f3ff;
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: rgba(0, 243, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+
+        .banniere-url {
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            opacity: 0.9;
+        }
+        
+        .banniere-url span {
+            color: #00f3ff;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Aperçu de la bannière publicitaire pour jevend.com</h1>
+
+    <!-- Bloc de la bannière -->
+    <div class="banniere-premium">
+        <div class="banniere-texte">Votre publicité locale ici</div>
+        <div class="banniere-prix">Seulement XX $ / mois</div>
+        <div class="banniere-url">je<span>vend</span>.com</div>
+    </div>
+
+</body>
+</html>

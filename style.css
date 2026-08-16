@@ -1,0 +1,240 @@
+/* =============================================================================
+   CHARTE GRAPHIQUE GLOBALE - jevend.com
+   REVISION : 1.2 - Design Commercial Clair, Rassurant et Épuré
+   ============================================================================= */
+
+body {
+    background-color: #f8fafc; /* Gris très clair, doux pour les yeux */
+    color: #1e293b; /* Texte bleu-noir très sombre, haut contraste */
+    font-family: Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.form-bloc {
+    background-color: #ffffff; /* Fond blanc pur pour le bloc */
+    padding: 30px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0; /* Bordure grise très discrète */
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.form-bloc h2 {
+    margin-top: 0;
+    color: #1e3a8a; /* Bleu marine institutionnel, sérieux et pro */
+    font-size: 1.4rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.champ-groupe {
+    margin-bottom: 15px;
+}
+
+.champ-groupe label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #475569; /* Gris moyen pour les libellés */
+}
+
+.champ-groupe input, .champ-groupe select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    background-color: #ffffff;
+    color: #1e293b;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1rem;
+}
+
+/* Focus sur les champs pour l'accessibilité */
+.champ-groupe input:focus, .champ-groupe select:focus {
+    border-color: #1e3a8a;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
+.champ-groupe select option {
+    background-color: #ffffff;
+    color: #1e293b;
+}
+
+.btn-action {
+    width: 100%;
+    padding: 12px;
+    background-color: #2563eb; /* Bleu vif commercial et cliquable */
+    color: #ffffff;
+    border: none;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+}
+
+.btn-action:hover {
+    background-color: #1d4ed8; /* Bleu un peu plus soutenu au survol */
+}
+
+.erreur-msg {
+    color: #dc2626; /* Rouge alerte standard */
+    background-color: #fef2f2;
+    border: 1px solid #fee2e2;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.succes-msg {
+    color: #16a34a; /* Vert succès standard */
+    background-color: #f0fdf4;
+    border: 1px solid #dcfce7;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.liens-navigation {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.liens-navigation a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.liens-navigation a:hover {
+    text-decoration: underline;
+}
+
+/* Verrou anti-robot */
+.cle-securite-invisible {
+    display: none !important;
+}
+
+/* =============================================================================
+   SECTIONS SPÉCIFIQUES - ADMINISTRATION
+   ============================================================================= */
+
+.admin-body {
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: block; /* Évite le centrage flex du body standard */
+    min-height: 100vh;
+}
+
+.admin-barre-haut {
+    background-color: #ffffff;
+    padding: 15px 30px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.admin-barre-haut h1 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #1e3a8a; /* Bleu marine pro */
+    font-weight: bold;
+}
+
+.admin-barre-haut .statut-admin {
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.admin-barre-haut strong {
+    color: #1e293b;
+}
+
+.admin-barre-haut a {
+    color: #dc2626; /* Rouge signalisation pour la déconnexion */
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-left: 20px;
+    padding: 6px 12px;
+    border: 1px solid #fee2e2;
+    background-color: #fef2f2;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.admin-barre-haut a:hover {
+    background-color: #fca5a5;
+    color: #991b1b;
+}
+
+.admin-conteneur {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-bloc-vide {
+    background-color: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 40px;
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* code ci dessous provenant de connexion qui a ete demenagé ici.. IL RESTE UN PETIT BLOC DANS CONNEXION FAIT EXPRES POUR EVITER LES DOUBLONS DANS CE FICHIER */
+
+.btn-connexion-etape1 {
+            width: 100%;
+            margin-top: 15px;
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+            border: none !important;
+            padding: 12px !important;
+            border-radius: 6px !important;
+            font-weight: bold !important;
+            font-size: 0.95rem !important;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .btn-connexion-etape1:hover { background-color: #0f172a !important; }
+
+        .btn-connexion-etape2 {
+            width: 100%;
+            margin-top: 15px;
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+            border: none !important;
+            padding: 12px !important;
+            border-radius: 6px !important;
+            font-weight: bold !important;
+            font-size: 0.95rem !important;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .btn-connexion-etape2:hover { background-color: #1d4ed8 !important; }
+        .btn-connexion-etape2:disabled { opacity: 0.5 !important; cursor: not-allowed !important; }
+

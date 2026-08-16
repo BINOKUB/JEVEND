@@ -1,0 +1,144 @@
+/* =============================================================================
+   NOM DU SCRIPT : poster_recherche.css
+   DESCRIPTION  : Feuille de style dédiée pour poster_recherche.php
+   ============================================================================= */
+
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+body.admin-body {
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: block;
+    min-height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Conteneur principal de la page de recherche */
+.conteneur-form-cherche {
+    max-width: 650px;
+    margin: 30px auto;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-top: 5px solid #f59e0b;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-sizing: border-box;
+}
+
+.entete-form-cherche {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.entete-form-cherche h2 {
+    margin: 0 0 6px 0;
+    color: #0f172a;
+    font-size: 1.6rem;
+}
+
+.entete-form-cherche p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.grille-champs-cherche {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.champ-largeur-totale {
+    grid-column: span 2;
+}
+
+.champ-groupe-cherche {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.champ-groupe-cherche label {
+    font-weight: bold;
+    font-size: 0.88rem;
+    color: #1e293b;
+}
+
+.champ-groupe-cherche input, 
+.champ-groupe-cherche select, 
+.champ-groupe-cherche textarea {
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    color: #1e293b;
+}
+
+.champ-groupe-cherche input:focus, 
+.champ-groupe-cherche select:focus, 
+.champ-groupe-cherche textarea:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+.btn-soumettre-cherche {
+    width: 100%;
+    background-color: #f59e0b;
+    color: #0f172a;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    margin-top: 10px;
+    box-sizing: border-box;
+}
+
+.btn-soumettre-cherche:hover {
+    background-color: #d97706;
+    color: #ffffff;
+}
+
+/* =============================================================================
+   ADAPTATION MOBILE (Cellulaires) : Zéro décentrage, largeur fluide
+   ============================================================================= */
+@media (max-width: 768px) {
+    body.admin-body {
+        padding: 0 !important;
+    }
+
+    .conteneur-form-cherche {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border-left: none;
+        border-right: none;
+        padding: 15px 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    .grille-champs-cherche {
+        grid-template-columns: 1fr !important;
+    }
+
+    .champ-largeur-totale {
+        grid-column: span 1 !important;
+    }
+}
