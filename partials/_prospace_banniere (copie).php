@@ -53,21 +53,15 @@ $msg_succes_url = "";
 $msg_alerte_pro = "";
 
 // Traitement des retours d'état (Succès / Erreur)
-if (isset($_GET['succes'])) {
-    if ($_GET['succes'] === 'banniere_ajoutee' || $_GET['succes'] === 'paiement_stripe_valide') {
-        $msg_succes_url = "🎉 Félicitations ! Votre emplacement publicitaire a été réservé et votre paiement a été confirmé avec succès.";
-    } elseif ($_GET['succes'] === 'renouvellement_effectue') {
-        $msg_succes_url = "🔄 Votre bannière a été renouvelée avec succès ! La date d'échéance a été prolongée.";
-    }
+if (isset($_GET['succes']) && $_GET['succes'] === 'banniere_ajoutee') {
+    $msg_succes_url = "🎉 Félicitations ! Votre emplacement publicitaire a été réservé et votre visuel est en ligne.";
 } elseif (isset($_GET['erreur'])) {
     if ($_GET['erreur'] === 'image_trop_petite') {
         $msg_alerte_pro = "❌ IMAGE TROP PETITE : Veuillez téléverser une image de meilleure qualité (au moins 800 px de large pour Suprême ou 400 px pour Premium).";
     } elseif ($_GET['erreur'] === 'format_image_invalide') {
         $msg_alerte_pro = "❌ FORMAT INVALIDE : Seuls les fichiers JPG, PNG et WEBP sont acceptés.";
     } elseif ($_GET['erreur'] === 'quota_atteint') {
-        $msg_alerte_pro = "⚠️ Premier arrivé, premier vendu ! Tous les emplacements disponibles pour ce forfait sont occupés.";
-    } elseif ($_GET['erreur'] === 'paiement_annule') {
-        $msg_alerte_pro = "ℹ️ Transaction annulée. Votre carte n'a pas été débitée.";
+        $msg_alerte_pro = "⚠️ Premier arrivé, premier vendu ! Un autre membre vient de s'attribuer le tout dernier emplacement disponible à la fraction de seconde près. Votre paiement n'a pas été prélevé / Surveillez les expirations pour saisir la prochaine opportunité.";
     }
 }
 
