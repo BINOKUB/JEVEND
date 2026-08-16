@@ -1,6 +1,6 @@
 <?php
 // =============================================================================
-// NOM DU SCRIPT : _admin_view_quota_annonce.php
+// NOM DU SCRIPT : _admin_view_quota_annonce.php include dans _admin_rpm.php
 // DESCRIPTION  : Affichage de l'historique des quotas d'annonces (30 derniers jours) dans l'onglet RPM
 // =============================================================================
 

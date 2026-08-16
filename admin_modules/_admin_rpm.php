@@ -197,4 +197,8 @@ $pourcentage_remplissage_recherches = ($limite_recherches_actuelle > 0) ? min(10
         </form>
     </div>
 
+<!-- ici le module du calcul des nouvelles annonces par jours nomme _admin_calcul_annonce_jour_rpm.php -->
+<!-- MODULE DE SUIVI QUOTIDIEN DES ANNONCES -->
+<?php include 'admin_modules/_admin_view_quota_annonce.php'; ?>
+
 </div>

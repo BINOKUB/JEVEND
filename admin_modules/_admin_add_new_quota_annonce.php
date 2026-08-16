@@ -1,5 +1,5 @@
 <?php
-// Script : _admin_add_new_quota_annonce.php
+// Script : _admin_add_new_quota_annonce.php INCLUDE DANS cree_annonce_traitement.php
 // Objectif : Incrémenter ou créer le compteur d'annonces pour la date du jour
 try {
     $date_du_jour = date('Y-m-d');
