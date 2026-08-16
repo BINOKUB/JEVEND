@@ -1,0 +1,262 @@
+/* =============================================================================
+   NOM DU SCRIPT : sudoku.css
+   REVISION     : 3.0 - Design moderne, doux, glassmorphism & chiffres translucides
+   ============================================================================= */
+
+:root {
+    --sudoku-bg: rgba(255, 255, 255, 0.85);
+    --sudoku-border-thick: #334155;
+    --sudoku-border-thin: #e2e8f0;
+    
+    --cell-initial: #0f172a;
+    --cell-user: #2563eb;
+    
+    --cell-selected-bg: rgba(37, 99, 235, 0.15);
+    --cell-selected-border: #3b82f6;
+    
+    --cell-highlight-bg: rgba(241, 245, 249, 0.7);
+    --cell-same-num-bg: rgba(187, 247, 208, 0.55);
+    --cell-same-num-text: #15803d;
+    
+    --cell-error-bg: rgba(254, 226, 226, 0.8);
+    --cell-error-text: #dc2626;
+}
+
+/* CONTENEUR PRINCIPAL AVEC GLASSMORPHISM */
+.sudoku-container {
+    max-width: 480px;
+    margin: 15px auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+    box-sizing: border-box;
+}
+
+/* EN-TÊTE ÉLÉGANTE */
+.sudoku-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    background: rgba(248, 250, 252, 0.8);
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+}
+
+.sudoku-header select {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: bold;
+    color: #334155;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.sudoku-timer {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #1e293b;
+    letter-spacing: 1px;
+}
+
+/* GRILLE PRINCIPALE DE SUDOKU */
+/* GRILLE PRINCIPALE DE SUDOKU */
+.sudoku-board {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    aspect-ratio: 1;
+    background: var(--sudoku-bg);
+    border: 3px solid #1e293b !important;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
+    user-select: none;
+    touch-action: manipulation;
+    box-sizing: border-box;
+}
+
+.sudoku-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: clamp(1.2rem, 4.5vw, 1.7rem) !important;
+    font-weight: 600;
+    border-right: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* BORDURES DÉLIMITANT LES BLOCS 3x3 */
+/* BORDURES ÉPAISSES SANS IMPACT SUR LA HAUTEUR DES CASES */
+.sudoku-cell:nth-child(3n) { 
+    border-right: 2px solid #1e293b !important; 
+}
+
+.sudoku-cell:nth-child(9n) { 
+    border-right: none !important; 
+}
+
+.sudoku-cell:nth-child(n+19):nth-child(-n+27),
+.sudoku-cell:nth-child(n+46):nth-child(-n+54) { 
+    border-bottom: 2px solid #1e293b !important; 
+}
+
+.sudoku-cell:nth-child(n+73):nth-child(-n+81) { 
+    border-bottom: none !important; 
+}
+
+/* ÉTATS DES CASES */
+.sudoku-cell.initial {
+    color: var(--cell-initial);
+    font-weight: 800;
+    background-color: rgba(248, 250, 252, 0.4);
+}
+
+.sudoku-cell.user-entry {
+    color: var(--cell-user);
+    font-weight: 700;
+}
+
+.sudoku-cell.highlighted {
+    background-color: var(--cell-highlight-bg);
+}
+
+.sudoku-cell.same-number {
+    background-color: var(--cell-same-num-bg);
+    color: var(--cell-same-num-text);
+    font-weight: 800;
+}
+
+.sudoku-cell.selected {
+    background-color: var(--cell-selected-bg) !important;
+    box-shadow: inset 0 0 0 2px var(--cell-selected-border);
+    z-index: 2;
+}
+
+.sudoku-cell.error {
+    background-color: var(--cell-error-bg) !important;
+    color: var(--cell-error-text) !important;
+    font-weight: 800;
+    animation: shake 0.2s ease-in-out;
+}
+
+/* GRILLE DES NOTES (MODE CRAYON) */
+.sudoku-cell .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    height: 100%;
+    font-size: 0.65rem;
+    color: #64748b;
+    text-align: center;
+    pointer-events: none;
+    align-items: center;
+}
+
+/* BARRE D'ACTIONS STYLE PILLULES */
+.sudoku-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.btn-tool {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #475569;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition: all 0.2s ease;
+}
+
+.btn-tool:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-tool.active {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25);
+}
+
+/* PAVÉ TACTILE NUMÉRIQUE MODERNE */
+.sudoku-keypad {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.keypad-btn {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    transition: all 0.15s ease;
+}
+
+.keypad-btn:hover {
+    border-color: #3b82f6;
+    color: #2563eb;
+    transform: translateY(-1px);
+}
+
+.keypad-btn:active {
+    transform: scale(0.95);
+    background-color: #eff6ff;
+}
+
+.keypad-btn.completed {
+    opacity: 0.25;
+    cursor: not-allowed;
+    background-color: #f1f5f9;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+.keypad-btn .count-badge {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    margin-top: 2px;
+    font-weight: 600;
+}
+
+/* ANIMATION D'ERREUR DOUCE */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-3px); }
+    40%, 80% { transform: translateX(3px); }
+}
