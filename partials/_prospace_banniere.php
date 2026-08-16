@@ -1,6 +1,6 @@
 <?php
 // =============================================================================
-// NOM DU SCRIPT : partials/_prospace_banniere.php
+// NOM DU SCRIPT : partials/_prospace_banniere.php FINAL
 // REVISION     : 3.5 - Refactorisation avec inclusion modulaire des 3 onglets
 // DESCRIPTION  : Interface PRO unifiée avec vérification des limites globales 
 //                (3 Suprême, 20 Premium) et individuelles (5 Premium par membre).

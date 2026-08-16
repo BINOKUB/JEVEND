@@ -234,10 +234,6 @@ OK MEMORY.CSS .. _MEMORY_ENGINE.JS, MEMORY_KIT.JS... espace_membre.php
 STRIPE TEST
 
 CLE SECRETE
-sk_test_51TYBh0JBFf7KXMewM0Rm49CHacyBCz90jFCj5nBBEoG0eXHTGQgdYRUmlSgx3asSaxpnft7K88uCuTqFarwIyxq200VtpAwxpN
-
-CLE PUBLIQUE
-pk_test_51TYBh0JBFf7KXMewmpx51Ie4EiEavTlf8nzyRCaPfNwb7AnR21mr4yOXuycnNutQh4MwAzz6H5NmTvCxEEWZWyk4002HKm46bv
 
 traitement_paiement_pro_LOCAL.php
 traitement_paiement_pro.php  - ROUTER
