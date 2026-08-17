@@ -27,11 +27,18 @@
                 <div>Paires : <span id="memoryPaires">0/8</span></div>
             </div>
             <select id="selectKitMemory" onchange="changerKitExplicitely()" style="margin-top: 6px; padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 0.8rem; color: #334155; background: #ffffff;">
-                <option value="aleatoire">🎲 Kit Aléatoire</option>
-                <option value="utilitaire">🏷️ Objets & Utilitaires</option>
-                <option value="geometrie">🔷 Formes Géométriques</option>
-                <option value="nombres">🔢 Nombres & Chiffres</option>
-                <option value="nature">🌱 Nature & Animaux</option>
+                <option value="aleatoire">🎲 Aleatoire</option>
+    <option value="utilitaire">🏷️ Objets & Utilitaires</option>
+    <option value="geometrie">🔷 Formes Géométriques</option>
+    <option value="nombres">🔢 Nombres & Chiffres</option>
+    <option value="nature">🌱 Nature & Animaux</option>
+    <option value="musique">🎸 Instruments de Musique</option>
+    <option value="outils">🔨 Ensemble d'Outils</option>
+    <option value="lettres">🔤 Lettres Mélangées</option>
+    <option value="informatique">💻 Symboles Informatique</option>
+    <option value="puces">⚡ Puces & Technologie</option>
+    <option value="grec">🏛️ Caractères Grecs</option>
+    <option value="binaire">🔢 Binaire & Données</option>
             </select>
         </div>
 

@@ -1,6 +1,6 @@
 // =============================================================================
 // NOM DU SCRIPT : memory_kits.js
-// REVISION     : 1.0 - Kits de symboles modulaires pour le Memory
+// REVISION     : 1.1 - Ajout des kits musique, outils, lettres, informatique, puces, grec et binaire
 // =============================================================================
 
 const KITS_MEMORY = {
@@ -19,6 +19,34 @@ const KITS_MEMORY = {
     nature: {
         nom: "🌱 Nature & Animaux",
         symboles: ['🐶', '🐱', '🌲', '🌸', '🦁', '🐬', '🦉', '🍎']
+    },
+    musique: {
+        nom: "🎸 Instruments de Musique",
+        symboles: ['🎸', '🥁', '🎷', '🎺', '🎻', '🎹', '🪕', '🪘']
+    },
+    outils: {
+        nom: "🔨 Ensemble d'Outils",
+        symboles: ['🔨', '🪛', '🔧', '🪓', '🪚', '🪜', '⛏️', '🧹']
+    },
+    lettres: {
+        nom: "🔤 Lettres Mélangées",
+        symboles: ['a', 'B', 'c', 'D', 'e', 'F', 'g', 'H']
+    },
+    informatique: {
+        nom: "💻 Symboles Informatique",
+        symboles: ['</>', '{}', '[]', '()', '&&', '||', '!=', '==']
+    },
+    puces: {
+        nom: "⚡ Puces & Technologie",
+        symboles: ['💾', '⚡', '🔋', '🔌', '🎛️', '🛜', '📡', '🕹️']
+    },
+    grec: {
+        nom: "🏛️ Caractères Grecs",
+        symboles: ['α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'Ω']
+    },
+    binaire: {
+        nom: "🔢 Binaire & Données",
+        symboles: ['00', '01', '10', '11', '0', '1', '000', '111']
     }
 };
 
