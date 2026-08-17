@@ -175,7 +175,7 @@ try {
     </div>
 
         <div id="onglet-stats" class="contenu-onglet">
-            <?php include 'partials/histograme_membre.php'; ?>
+            <?php include 'partials/_histograme_membre.php'; ?>
         </div>
 
 
