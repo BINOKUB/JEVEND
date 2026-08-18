@@ -1,10 +1,13 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : details_recherche.php
-// REVISION : 1.7 - Utilisation du champ cellulaire pour les appels et SMS
+// REVISION : 1.8 - Intégration propre du bouton de chat web direct
 // =============================================================================
 session_start();
 require_once 'config.php';
+
+// NETOIE LE CHAT QUAND LE CHERCHEUR CLOTURE SA DEMANDE.
+//include 'partials/_cloture_recherche.php';
 
 $id_utilisateur_connecte = $_SESSION['id_utilisateur'] ?? null;
 $id_recherche = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_GET['id_recherche']) ? (int)$_GET['id_recherche'] : 0);
@@ -62,16 +65,26 @@ if (!$demande) {
 
 $est_auteur = ($id_utilisateur_connecte && $id_utilisateur_connecte == $demande['id_utilisateur']);
 
-// TRAITEMENT : MARQUER COMME TROUVÉ / RÉSOLU
+// TRAITEMENT : MARQUER COMME TROUVÉ / RÉSOLU ET PURGER PROPOSITIONS + CHATS
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_marquer_trouve'])) {
     if ($est_auteur) {
         try {
+            // 1. Mettre à jour le statut de la recherche
             $stmt_upd = $bdd->prepare("UPDATE jevend_recherches SET statut = 'trouve' WHERE id_recherche = ?");
             $stmt_upd->execute([$id_recherche]);
-            $succes = "Félicitations ! Votre demande a été marquée comme résolue.";
+
+            // 2. Supprimer les messages de chat liés à cette recherche
+            $stmt_del_chat = $bdd->prepare("DELETE FROM jevend_chat WHERE id_recherche = ?");
+            $stmt_del_chat->execute([$id_recherche]);
+
+            // 3. Supprimer les propositions des vendeurs pour éviter les données orphelines
+            $stmt_del_rep = $bdd->prepare("DELETE FROM jevend_reponses_recherche WHERE id_recherche = ?");
+            $stmt_del_rep->execute([$id_recherche]);
+
+            $succes = "Félicitations ! Votre demande a été marquée comme résolue et les données associées ont été nettoyées.";
             $demande['statut'] = 'trouve';
         } catch (PDOException $e) {
-            $erreur = "Erreur lors de la mise à jour du statut.";
+            $erreur = "Erreur lors de la clôture de la recherche : " . $e->getMessage();
         }
     }
 }
@@ -407,19 +420,23 @@ $jours_restants = ($maintenant < $dt_exp) ? $diff->days : 0;
 
                                 <!-- CONTACT DIRECT PAR CELLULAIRE / SMS -->
                                 <?php if (!empty($prop['cellulaire_vendeur'])): ?>
-                                    <div style="display: flex; gap: 8px;">
+                                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                                         <a href="tel:<?= htmlspecialchars($prop['cellulaire_vendeur']) ?>" style="flex: 1; text-align: center; background-color: #16a34a; color: #fff; text-decoration: none; padding: 7px; border-radius: 4px; font-size: 0.78rem; font-weight: bold;">
-                                            📞 Appeler (<?= htmlspecialchars($prop['cellulaire_vendeur']) ?>)
+                                            📞 Appeler
                                         </a>
                                         <a href="sms:<?= htmlspecialchars($prop['cellulaire_vendeur']) ?>?body=Bonjour, suite a votre proposition sur jevend.com pour : <?= urlencode($demande['titre_recherche']) ?>" style="flex: 1; text-align: center; background-color: #0284c7; color: #fff; text-decoration: none; padding: 7px; border-radius: 4px; font-size: 0.78rem; font-weight: bold;">
-                                            💬 Envoyer un SMS
+                                            💬 SMS
                                         </a>
                                     </div>
-                                <?php else: ?>
-                                    <div style="font-size: 0.78rem; color: #94a3b8; text-align: center; font-style: italic;">
-                                        ⚠️ Ce vendeur n'a pas renseigné son numéro de cellulaire.
-                                    </div>
                                 <?php endif; ?>
+
+                                <!-- BOUTON DE CHAT WEB EN DIRECT -->
+                                <div>
+                                    <a href="chat_recherche.php?id_recherche=<?= $id_recherche ?>&avec=<?= $prop['id_vendeur'] ?>" style="display: block; text-align: center; background-color: #2563eb; color: #fff; text-decoration: none; padding: 8px; border-radius: 4px; font-size: 0.82rem; font-weight: bold;">
+                                        💬 Discuter en direct (Chat)
+                                    </a>
+                                </div>
+
                             </div>
                         <?php endforeach; ?>
                     </div>

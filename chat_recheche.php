@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
-// NOM DU SCRIPT : chat_membre.php
-// REVISION     : 2.2 - Support multicontexte (Annonces ET Module Je Cherche)
+// NOM DU SCRIPT : chat_recherche.php
+// REVISION     : 1.0 - Tchat dédié exclusif au module "Je Cherche"
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -13,105 +13,67 @@ if (!$id_utilisateur) {
     exit();
 }
 
-$id_annonce = isset($_GET['id_annonce']) ? (int)$_GET['id_annonce'] : 0;
 $id_recherche = isset($_GET['id_recherche']) ? (int)$_GET['id_recherche'] : 0;
+$id_interlocuteur = (int)($_GET['avec'] ?? 0);
 
-if ($id_annonce <= 0 && $id_recherche <= 0) {
-    header("Location: espace_membre.php");
+if ($id_recherche <= 0) {
+    header("Location: zone_cherche.php");
     exit();
 }
 
-$titre_contexte = "";
-$id_interlocuteur = (int)($_GET['avec'] ?? 0);
+// 2. EXTRACTION DES INFOS DE LA RECHERCHE
+$stmt_rech = $bdd->prepare("
+    SELECT r.*, u.id_utilisateur AS acheteur_id, u.nom AS acheteur_nom 
+    FROM jevend_recherches r
+    JOIN jevend_utilisateurs u ON r.id_utilisateur = u.id_utilisateur
+    WHERE r.id_recherche = ?
+");
+$stmt_rech->execute([$id_recherche]);
+$recherche = $stmt_rech->fetch();
 
-// CAS A : C'est un chat lié à une ANNONCE
-if ($id_annonce > 0) {
-    $stmt_ann = $bdd->prepare("
-        SELECT a.*, u.id_utilisateur AS vendeur_id, u.nom AS vendeur_nom 
-        FROM jevend_annonces a
-        JOIN jevend_utilisateurs u ON a.id_utilisateur = u.id_utilisateur
-        WHERE a.id_annonces = ?
-    ");
-    $stmt_ann->execute([$id_annonce]);
-    $annonce = $stmt_ann->fetch();
+if (!$recherche) {
+    header("Location: zone_cherche.php");
+    exit();
+}
 
-    if (!$annonce) {
-        header("Location: espace_membre.php");
-        exit();
-    }
+$id_acheteur = (int)$recherche['acheteur_id'];
+$est_acheteur = ($id_utilisateur === $id_acheteur);
 
-    $id_vendeur = (int)$annonce['vendeur_id'];
-    $est_vendeur = ($id_utilisateur === $id_vendeur);
-    if ($id_interlocuteur <= 0) {
-        $id_interlocuteur = $est_vendeur ? 0 : $id_vendeur;
-    }
-    $titre_contexte = "Annonce : " . $annonce['titre_objet_nettoye'];
-} 
-// CAS B : C'est un chat lié à une RECHERCHE ("Je Cherche")
-else {
-    $stmt_rech = $bdd->prepare("
-        SELECT r.*, u.id_utilisateur AS acheteur_id, u.nom AS acheteur_nom 
-        FROM jevend_recherches r
-        JOIN jevend_utilisateurs u ON r.id_utilisateur = u.id_utilisateur
-        WHERE r.id_recherche = ?
-    ");
-    $stmt_rech->execute([$id_recherche]);
-    $recherche = $stmt_rech->fetch();
-
-    if (!$recherche) {
-        header("Location: espace_membre.php");
-        exit();
-    }
-
-    $id_acheteur = (int)$recherche['acheteur_id'];
-    $est_acheteur = ($id_utilisateur === $id_acheteur);
-    if ($id_interlocuteur <= 0) {
-        // Si l'utilisateur connecté est l'acheteur, il discute avec le vendeur transmis dans l'URL (&avec=...), sinon avec l'acheteur
-        $id_interlocuteur = $est_acheteur ? (int)($_GET['avec'] ?? 0) : $id_acheteur;
-    }
-    $titre_contexte = "Recherche : " . $recherche['titre_recherche'];
+// Si l'utilisateur connecté est l'acheteur, il discute avec le vendeur transmis dans l'URL (&avec=...), sinon avec l'acheteur de la recherche
+if ($id_interlocuteur <= 0) {
+    $id_interlocuteur = $est_acheteur ? 0 : $id_acheteur;
 }
 
 if ($id_interlocuteur <= 0) {
-    header("Location: espace_membre.php");
+    header("Location: zone_cherche.php");
     exit();
 }
 
-// TRAITEMENT DU POST (Envoi de message classique en secours)
+$titre_contexte = "Recherche : " . $recherche['titre_recherche'];
+
+// TRAITEMENT DU POST (Envoi de message classique de secours)
 $erreur = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_envoyer_msg'])) {
     $msg = trim($_POST['message'] ?? '');
-    
-    // Compteur de messages selon le contexte
-    if ($id_annonce > 0) {
-        $stmt_count = $bdd->prepare("SELECT COUNT(*) FROM jevend_chat WHERE id_annonce = ?");
-        $stmt_count->execute([$id_annonce]);
-    } else {
-        $stmt_count = $bdd->prepare("SELECT COUNT(*) FROM jevend_chat WHERE id_recherche = ? AND ((id_expediteur = ? AND id_destinataire = ?) OR (id_expediteur = ? AND id_destinataire = ?))");
-        $stmt_count->execute([$id_recherche, $id_utilisateur, $id_interlocuteur, $id_interlocuteur, $id_utilisateur]);
-    }
-    $total_echanges = (int)$stmt_count->fetchColumn();
 
     if (empty($msg)) {
         $erreur = "Votre message ne peut pas être vide.";
     } elseif (mb_strlen($msg) > 350) {
         $erreur = "Le message dépasse la limite de 350 caractères.";
     } else {
-        // Insertion multicontexte dans jevend_chat
+        // Insertion propre réservée au contexte Je Cherche (id_annonce à NULL)
         $stmt_ins = $bdd->prepare("
             INSERT INTO jevend_chat (id_annonce, id_recherche, id_expediteur, id_destinataire, message, date_envoi)
-            VALUES (?, ?, ?, ?, ?, NOW())
+            VALUES (NULL, ?, ?, ?, ?, NOW())
         ");
         $stmt_ins->execute([
-            ($id_annonce > 0 ? $id_annonce : null),
-            ($id_recherche > 0 ? $id_recherche : null),
+            $id_recherche,
             $id_utilisateur, 
             $id_interlocuteur, 
             $msg
         ]);
         
-        $redirection_url = "chat_membre.php?" . ($id_annonce > 0 ? "id_annonce=" . $id_annonce : "id_recherche=" . $id_recherche) . "&avec=" . $id_interlocuteur;
-        header("Location: " . $redirection_url);
+        header("Location: chat_recherche.php?id_recherche=" . $id_recherche . "&avec=" . $id_interlocuteur);
         exit();
     }
 }
@@ -122,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_envoyer_msg'])
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat : <?= htmlspecialchars($titre_contexte) ?> — jevend.com</title>
-    <link rel="stylesheet" href="chat_membre.css">
+    <link rel="stylesheet" href="chat_recherche.css">
 </head>
 <body class="admin-body">
 
@@ -135,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_envoyer_msg'])
         </div>
 
         <div class="chat-warning-bar">
-            🔒 Échange sécurisé en direct. Les messages sont effacés après 30 jours.
+            🔒 Échange sécurisé rattaché à la demande « Je Cherche ». Effacé après 30 jours ou si résolu.
         </div>
 
         <div class="chat-body" id="chatWindow">
@@ -162,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_envoyer_msg'])
     </div>
 
     <script>
-        const idAnnonce = <?= $id_annonce ?>;
         const idRecherche = <?= $id_recherche ?>;
         const idInterlocuteur = <?= $id_interlocuteur ?>;
         const chatWindow = document.getElementById('chatWindow');
@@ -174,17 +135,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_envoyer_msg'])
 
         // --- 1. SIGNAL "JE SUIS EN TRAIN D'ÉCRIRE" ---
         chatInput.addEventListener('input', () => {
-            fetch(`chat_ajax_handler.php?action=signal_frappe&id_annonce=${idAnnonce}&id_recherche=${idRecherche}&avec=${idInterlocuteur}`)
+            fetch(`chat_recherche_ajax_handler.php?action=signal_frappe&id_recherche=${idRecherche}&avec=${idInterlocuteur}`)
                 .catch(e => console.error(e));
         });
 
-        // --- 2. RAFRAÎCHISSEMENT AUTOMATIQUE DES MESSAGES ---
+        // --- 2. RAFRAÎCHISSEMENT AUTOMATIQUE DES MESSAGES EN TEMPS RÉEL ---
         function rafraichirChat() {
-            fetch(`chat_ajax_handler.php?action=fetch_messages&id_annonce=${idAnnonce}&id_recherche=${idRecherche}&avec=${idInterlocuteur}`)
+            fetch(`chat_recherche_ajax_handler.php?action=fetch_messages&id_recherche=${idRecherche}&avec=${idInterlocuteur}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'ok') {
-                        chatWindow.innerHTML = data.html || "<div style='text-align: center; color: #94a3b8; margin: auto;'>Aucun message pour le moment. Démarrer la discussion !</div>";
+                        chatWindow.innerHTML = data.html || "<div style='text-align: center; color: #94a3b8; margin: auto;'>Aucun message pour le moment. Démarrez la discussion !</div>";
                         
                         if (data.total_count !== dernierCountMsg) {
                             chatWindow.scrollTop = chatWindow.scrollHeight;

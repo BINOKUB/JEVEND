@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
-// NOM DU SCRIPT : chat_ajax_handler.php
-// REVISION     : 2.2 - Gestion AJAX multicontexte blindée (Typing instantané + Temps réel)
+// NOM DU SCRIPT : chat_recherche_ajax_handler.php
+// REVISION     : 1.2 - Correction de l'indicateur de frappe (Ciblage strict de l'expéditeur)
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -15,91 +15,74 @@ if (!$id_utilisateur) {
 }
 
 $action = $_GET['action'] ?? '';
-$id_annonce = (int)($_GET['id_annonce'] ?? 0);
 $id_recherche = (int)($_GET['id_recherche'] ?? 0);
 $id_interlocuteur = (int)($_GET['avec'] ?? 0);
 
-if (($id_annonce <= 0 && $id_recherche <= 0) || $id_interlocuteur <= 0) {
+if ($id_recherche <= 0 || $id_interlocuteur <= 0) {
     echo json_encode(['status' => 'error', 'message' => 'Paramètres invalides']);
     exit();
 }
 
-// Détermination dynamique de la colonne cible
-$col_contexte = ($id_annonce > 0) ? "id_annonce" : "id_recherche";
-$val_contexte = ($id_annonce > 0) ? $id_annonce : $id_recherche;
-$params_contexte = [$val_contexte];
-
 // -----------------------------------------------------------------------------
-// ACTION 1 : Signal "Je suis en train d'écrire" (Ultra-robuste avec autocréation si vide)
+// ACTION 1 : Signal "Je suis en train d'écrire" (Ciblé sur l'utilisateur connecté)
 // -----------------------------------------------------------------------------
 if ($action === 'signal_frappe') {
     try {
-        // Tente de mettre à jour le dernier message de cet expéditeur
+        // Met à jour uniquement le dernier message envoyé PAR L'UTILISATEUR COURANT vers l'interlocuteur
         $stmt = $bdd->prepare("
             UPDATE jevend_chat 
             SET a_tape_a = NOW() 
-            WHERE {$col_contexte} = ? AND id_expediteur = ? AND id_destinataire = ? AND message != ''
+            WHERE id_recherche = ? 
+              AND id_expediteur = ? 
+              AND id_destinataire = ?
             ORDER BY date_envoi DESC LIMIT 1
         ");
-        $stmt->execute(array_merge($params_contexte, [$id_utilisateur, $id_interlocuteur]));
-        
-        // Si aucun message n'existe encore dans la conversation, on insère un marqueur invisible de frappe
-        if ($stmt->rowCount() === 0) {
-            $stmt_ins = $bdd->prepare("
-                INSERT INTO jevend_chat (id_annonce, id_recherche, id_expediteur, id_destinataire, message, a_tape_a, date_envoi)
-                VALUES (?, ?, ?, ?, '', NOW(), NOW())
-            ");
-            $stmt_ins->execute([
-                ($id_annonce > 0 ? $id_annonce : null),
-                ($id_recherche > 0 ? $id_recherche : null),
-                $id_utilisateur,
-                $id_interlocuteur
-            ]);
-        }
+        $stmt->execute([$id_recherche, $id_utilisateur, $id_interlocuteur]);
         echo json_encode(['status' => 'ok']);
     } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        echo json_encode(['status' => 'error']);
     }
     exit();
 }
 
 // -----------------------------------------------------------------------------
-// ACTION 2 : Récupération des messages + Indicateur de frappe de l'autre
+// ACTION 2 : Récupération des messages en temps réel
 // -----------------------------------------------------------------------------
 if ($action === 'fetch_messages') {
     try {
-        // 1. Charger l'historique (en ignorant les messages vides de signal de frappe)
-        $sql_msgs = "
+        // 1. Charger l'historique
+        $stmt_msgs = $bdd->prepare("
             SELECT c.*, u.nom AS expediteur_nom 
             FROM jevend_chat c
             JOIN jevend_utilisateurs u ON c.id_expediteur = u.id_utilisateur
-            WHERE c.{$col_contexte} = ? 
+            WHERE c.id_recherche = ? 
               AND ((c.id_expediteur = ? AND c.id_destinataire = ?) 
                OR (c.id_expediteur = ? AND c.id_destinataire = ?))
               AND c.message != '' AND c.message IS NOT NULL
             ORDER BY c.date_envoi ASC
-        ";
-        $stmt_msgs = $bdd->prepare($sql_msgs);
-        $stmt_msgs->execute(array_merge($params_contexte, [$id_utilisateur, $id_interlocuteur, $id_interlocuteur, $id_utilisateur]));
+        ");
+        $stmt_msgs->execute([$id_recherche, $id_utilisateur, $id_interlocuteur, $id_interlocuteur, $id_utilisateur]);
         $messages = $stmt_msgs->fetchAll(PDO::FETCH_ASSOC);
 
         // 2. Marquer comme lus
-        $sql_lu = "
+        $stmt_lu = $bdd->prepare("
             UPDATE jevend_chat 
             SET lu = 1 
-            WHERE {$col_contexte} = ? AND id_destinataire = ? AND id_expediteur = ?
-        ";
-        $stmt_lu = $bdd->prepare($sql_lu);
-        $stmt_lu->execute(array_merge($params_contexte, [$id_utilisateur, $id_interlocuteur]));
+            WHERE id_recherche = ? AND id_destinataire = ? AND id_expediteur = ?
+        ");
+        $stmt_lu->execute([$id_recherche, $id_utilisateur, $id_interlocuteur]);
 
-        // 3. Vérifier si l'autre écrit (< 4 secondes)
-        $sql_frappe = "
+        // 3. Vérifier si l'interlocuteur est en train d'écrire (< 4 secondes)
+        // On cherche si l'interlocuteur a écrit un message qui nous est destiné avec un a_tape_a récent
+        $stmt_frappe = $bdd->prepare("
             SELECT COUNT(*) 
             FROM jevend_chat c
-            WHERE c.{$col_contexte} = ? AND c.id_expediteur = ? AND c.a_tape_a >= NOW() - INTERVAL 4 SECOND
-        ";
-        $stmt_frappe = $bdd->prepare($sql_frappe);
-        $stmt_frappe->execute(array_merge($params_contexte, [$id_interlocuteur]));
+            WHERE c.id_recherche = ? 
+              AND c.id_expediteur = ? 
+              AND c.id_destinataire = ?
+              AND c.a_tape_a >= NOW() - INTERVAL 4 SECOND
+        ");
+        $stmt_frappe->execute([$id_recherche, $id_interlocuteur, $id_utilisateur]);
         $l_autre_ecrit = ($stmt_frappe->fetchColumn() > 0);
 
         // Rendu HTML des bulles de chat

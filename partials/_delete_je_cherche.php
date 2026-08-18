@@ -1,22 +1,21 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_delete_je_cherche.php
-// DESCRIPTION  : Purge automatique des anciennes recherches expirées ou trouvées
+// REVISION     : 2.0 - Purge automatique incluant les messages de chat (id_recherche)
+// DESCRIPTION  : Nettoie les recherches expirées/trouvées, leurs réponses 
+//                et les messages de chat associés de manière silencieuse.
 // =============================================================================
 
 if (isset($bdd)) {
-    // Fichier témoin pour éviter d'exécuter la requête à CHAQUE visite sur l'index
     $fichier_verrou = __DIR__ . '/../cache_purge_cherche.tmp';
-    $frequence_jours = 1; // Exécuter au maximum 1 fois par jour
+    $frequence_jours = 1;
 
-    // On vérifie si le fichier existe et s'il a moins de 24 heures
     if (!file_exists($fichier_verrou) || (time() - file_get_contents($fichier_verrou)) > ($frequence_jours * 86400)) {
         
         try {
-            // 1. Sélectionner les IDs des recherches à purger 
-            // (Ex: Expirées depuis plus de 30 jours OU Trouvées depuis plus de 30 jours)
             $delai_jours = 30;
             
+            // 1. Sélectionner les IDs des recherches à purger (Expirées ou Trouvées > 30 jours)
             $stmt_select = $bdd->prepare("
                 SELECT id_recherche 
                 FROM jevend_recherches 
@@ -27,24 +26,25 @@ if (isset($bdd)) {
             $ids_a_purger = $stmt_select->fetchAll(PDO::FETCH_COLUMN);
 
             if (!empty($ids_a_purger)) {
-                // Création d'une liste propre pour la requête SQL IN (...)
                 $placeholders = implode(',', array_fill(0, count($ids_a_purger), '?'));
 
-                // 2. Supprimer d'abord les réponses associées dans jevend_reponses_recherche
+                // 2. Supprimer les messages de chat liés à ces recherches
+                $stmt_del_chat = $bdd->prepare("DELETE FROM jevend_chat WHERE id_recherche IN ($placeholders)");
+                $stmt_del_chat->execute($ids_a_purger);
+
+                // 3. Supprimer les réponses associées dans jevend_reponses_recherche
                 $stmt_del_rep = $bdd->prepare("DELETE FROM jevend_reponses_recherche WHERE id_recherche IN ($placeholders)");
                 $stmt_del_rep->execute($ids_a_purger);
 
-                // 3. Supprimer ensuite les recherches elles-mêmes
+                // 4. Supprimer enfin les recherches elles-mêmes
                 $stmt_del_rech = $bdd->prepare("DELETE FROM jevend_recherches WHERE id_recherche IN ($placeholders)");
                 $stmt_del_rech->execute($ids_a_purger);
             }
 
-            // Mettre à jour le fichier témoin avec l'heure actuelle
             file_put_contents($fichier_verrou, time());
 
         } catch (PDOException $e) {
-            // En cas d'erreur SQL silencieuse pour ne pas casser l'affichage de l'index
-            error_log("Erreur lors de la purge Je Cherche : " . $e->getMessage());
+            error_log("Erreur lors de la purge Je Cherche & Chat : " . $e->getMessage());
         }
     }
 }
