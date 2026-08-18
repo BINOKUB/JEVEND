@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_nav_membre.php
-// REVISION : 1.8 - Intégration du badge de notification de Tchat non lu
+// REVISION : 1.9 - Intégration du Hub de messagerie unifié (chat_hub.php)
 // =============================================================================
 require_once __DIR__ . '/../chat_delete_membre.php'; // Inclus la purge automatique à la volée
 
@@ -201,13 +201,13 @@ if (isset($_SESSION['id_utilisateur']) && isset($bdd)) {
         </div>
         
        <div class="nav-membre-droite">
-    <!-- LIEN ACCÈS DIRECT AU CENTRE DE MESSAGERIE -->
-    <a href="mes_conversations_recherche.php" style="color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-right: 15px; transition: color 0.15s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'"> &nbsp;&nbsp; 💬 </a>
+    <!-- ACCÈS AU CENTRE DE MESSAGERIE UNIFIÉ (CHAT HUB) -->
+    <a href="chat_hub.php" style="color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-right: 15px; transition: color 0.15s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'" title="Centre de messagerie"> &nbsp;&nbsp; 💬 </a>
 
     <span style="color: #94a3b8;">
         Bonjour, 
         <?php if ($nb_chat_non_lus > 0): ?>
-            <a href="mes_conversations_recherche.php" class="badge-notif-chat" title="Vous avez <?= $nb_chat_non_lus ?> message(s) non lu(s)">
+            <a href="chat_hub.php" class="badge-notif-chat" title="Vous avez <?= $nb_chat_non_lus ?> message(s) non lu(s)">
                 <?= $nb_chat_non_lus ?>
             </a>
         <?php endif; ?>
