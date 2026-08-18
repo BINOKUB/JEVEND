@@ -1,14 +1,14 @@
 <?php
 // =============================================================================
-// NOM DU SCRIPT : traitement_simulation_stripe_LOCAL.php
-// REVISION     : 5.0 - Intégration Stripe Checkout TEST avec clés BDD
+// NOM DU SCRIPT : traitement_simulation_stripe_OFFICIEL.php
+// REVISION     : 2.0 - Intégration Stripe Checkout LIVE avec clés BDD
 // =============================================================================
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 require_once 'config.php';
-require_once __DIR__ . '/stripe-php/init.php'; // Ajuster le chemin vers le SDK Stripe si nécessaire
+require_once __DIR__ . '/stripe-php/init.php';
 
 date_default_timezone_set('America/Montreal');
 
@@ -17,13 +17,13 @@ if (!isset($_SESSION['id_utilisateur'])) {
     exit();
 }
 
-// Récupération de la clé secrète de test depuis jevend_parametres
-$stmt_key = $bdd->prepare("SELECT valeur_parametre FROM jevend_parametres WHERE cle_parametre = 'stripe_sk_test'");
+// Récupération de la clé secrète de production depuis jevend_parametres
+$stmt_key = $bdd->prepare("SELECT valeur_parametre FROM jevend_parametres WHERE cle_parametre = 'stripe_sk_live'");
 $stmt_key->execute();
 $stripe_secret_key = $stmt_key->fetchColumn();
 
 if (empty($stripe_secret_key)) {
-    $_SESSION['erreur_achat'] = "Configuration Stripe incomplète (clé de test introuvable).";
+    $_SESSION['erreur_achat'] = "Configuration Stripe de production manquante.";
     header('Location: espace_membre.php');
     exit();
 }
@@ -47,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $texte_banniere = mb_substr($texte_banniere, 0, 120);
     }
 
-    // Récupération des tarifs
     $stmt_cfg = $bdd->query("SELECT prix_par_jour, duree_min_jours FROM jevend_tarifs_publicites WHERE type_produit = 'reguliere'");
     $cfg = $stmt_cfg->fetch(PDO::FETCH_ASSOC) ?: ['prix_par_jour' => 1.00, 'duree_min_jours' => 10];
     
@@ -60,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // Vérification du quota
     try {
         $stmt_annonces = $bdd->query("SELECT COUNT(*) FROM jevend_annonces WHERE statut = 'actif'");
         $quota_max = ceil((int)$stmt_annonces->fetchColumn() * 0.50);
@@ -79,7 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $montant_paye = $duree_jours * $prix_par_jour;
 
-    // Récupération du titre de l'annonce
     $titre_annonce = "Annonce #" . $id_annonce;
     try {
         $stmt_titre = $bdd->prepare("SELECT titre_objet_nettoye FROM jevend_annonces WHERE id_annonces = ?");

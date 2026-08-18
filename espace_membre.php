@@ -146,9 +146,36 @@ try {
 <?php include 'partials/_nav_membre.php'; ?>
     <div class="admin-conteneur">
 
+
+<?php  if (!empty($erreur)): ;?>
+          <div class="erreur-msg">  <?=  htmlspecialchars($erreur) ; ?></div>
+     <?php  endif; ?>
+
+
+
+<!-- ALERTE SQL (L'original) -->
         <?php if (!empty($erreur)): ?>
             <div class="erreur-msg"><?= htmlspecialchars($erreur) ?></div>
         <?php endif; ?>
+
+        <!-- ALERTE STRIPE (Le nouveau) -->
+        <?php if (isset($_SESSION['erreur_achat'])): ?>
+            <div style="background-color: #fef2f2; color: #991b1b; padding: 12px; border-radius: 6px; margin: 15px 0; border: 1px solid #fecaca; font-weight: bold;">
+                ❌ ERREUR STRIPE : <?= htmlspecialchars($_SESSION['erreur_achat']) ?>
+            </div>
+            <?php unset($_SESSION['erreur_achat']); ?>
+        <?php endif; ?>
+
+        <!-- SUCCÈS STRIPE (Le nouveau) -->
+        <?php if (isset($_SESSION['succes_achat'])): ?>
+            <div style="background-color: #f0fdf4; color: #166534; padding: 12px; border-radius: 6px; margin: 15px 0; border: 1px solid #bbf7d0; font-weight: bold;">
+                ✅ <?= htmlspecialchars($_SESSION['succes_achat']) ?>
+            </div>
+            <?php unset($_SESSION['succes_achat']); ?>
+        <?php endif; ?>
+
+
+
 
         <div class="barre-outils-membre">
             <div class="onglets-navigation">
