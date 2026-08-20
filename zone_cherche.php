@@ -9,11 +9,29 @@ require_once 'config.php';
 
 $id_utilisateur_connecte = $_SESSION['id_utilisateur'] ?? null;
 
-// EXTRACTION DES CATÉGORIES
-$categories = [];
+// LE CODE DANS DELETE_JE_CHERCHE - EFFACE JEVEND_RECHERCHE, JEVEND_REPONSES_RECHERCHE, JEVEND_CHAT ET A LA RIGUEUR FAIT LE MENAGE AUX 60 JOURS POUR LES RECHERCHE SANS REPONSE
+include 'partials/_delete_je_cherche.php';
+
+
+// EXTRACTION DES CATÉGORIES HIÉRARCHISÉES
+$categories_parentes = [];
 try {
-    $stmt_cat = $bdd->query("SELECT id_categorie, nom_fr FROM jevend_categories ORDER BY nom_fr ASC");
-    $categories = $stmt_cat->fetchAll(PDO::FETCH_ASSOC);
+    // 1. Récupérer les catégories principales (niveau 1)
+    $stmt_p = $bdd->query("SELECT id_categorie, nom_fr FROM jevend_categories WHERE parent_id IS NULL OR parent_id = 0 ORDER BY nom_fr ASC");
+    $parents = $stmt_p->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($parents as $parent) {
+        $id_p = $parent['id_categorie'];
+        // 2. Récupérer les sous-catégories pour chaque parent
+        $stmt_s = $bdd->prepare("SELECT id_categorie, nom_fr FROM jevend_categories WHERE parent_id = ? ORDER BY nom_fr ASC");
+        $stmt_s->execute([$id_p]);
+        $sous_cats = $stmt_s->fetchAll(PDO::FETCH_ASSOC);
+
+        $categories_parentes[] = [
+            'parent' => $parent,
+            'enfants' => $sous_cats
+        ];
+    }
 } catch (PDOException $e) { }
 
 // EXTRACTION DES VILLES
@@ -103,12 +121,20 @@ $maintenant = new DateTime();
             <?php endforeach; ?>
         </select>
 
-        <select name="cat">
+       <select name="cat">
             <option value="0">🌐 Toutes les catégories</option>
-            <?php foreach ($categories as $cat): ?>
-                <option value="<?= $cat['id_categorie'] ?>" <?= $cat['id_categorie'] == $cat_filtre ? 'selected' : '' ?>>
-                    📁 <?= htmlspecialchars($cat['nom_fr']) ?>
-                </option>
+            <?php foreach ($categories_parentes as $groupe): ?>
+                <optgroup label="📁 <?= htmlspecialchars($groupe['parent']['nom_fr']) ?>">
+                    <!-- Option pour la catégorie parente elle-même si applicable -->
+                    <option value="<?= $groupe['parent']['id_categorie'] ?>" <?= $groupe['parent']['id_categorie'] == $cat_filtre ? 'selected' : '' ?>>
+                        &nbsp;&nbsp;📂 Tout dans <?= htmlspecialchars($groupe['parent']['nom_fr']) ?>
+                    </option>
+                    <?php foreach ($groupe['enfants'] as $enfant): ?>
+                        <option value="<?= $enfant['id_categorie'] ?>" <?= $enfant['id_categorie'] == $cat_filtre ? 'selected' : '' ?>>
+                            &nbsp;&nbsp;&nbsp;&nbsp;↳ 📄 <?= htmlspecialchars($enfant['nom_fr']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </optgroup>
             <?php endforeach; ?>
         </select>
 

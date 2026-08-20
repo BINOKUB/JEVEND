@@ -23,12 +23,15 @@ if ($id_recherche > 0) {
         $stmt = $bdd->prepare("
             SELECT r.*, 
                    COALESCE(v.nom_ville, 'Ville non spécifiée') AS nom_ville, 
-                   COALESCE(c.nom_fr, 'Général') AS nom_categorie, 
+                   c.nom_fr AS nom_categorie, 
+                   c.parent_id,
+                   p.nom_fr AS nom_parent_categorie,
                    COALESCE(u.nom, 'Utilisateur inconnu') AS nom_acheteur, 
                    u.cellulaire AS cellulaire_acheteur
             FROM jevend_recherches r
             LEFT JOIN jevend_villes v ON r.id_ville = v.id_ville
             LEFT JOIN jevend_categories c ON r.id_categorie = c.id_categorie
+            LEFT JOIN jevend_categories p ON c.parent_id = p.id_categorie
             LEFT JOIN jevend_utilisateurs u ON r.id_utilisateur = u.id_utilisateur
             WHERE r.id_recherche = ?
         ");
@@ -37,8 +40,6 @@ if ($id_recherche > 0) {
     } catch (PDOException $e) {
         $erreur_fatale = "Erreur SQL (Chargement demande) : " . $e->getMessage();
     }
-} else {
-    $erreur_fatale = "Aucun identifiant de recherche valide fourni dans l'URL.";
 }
 
 if ($erreur_fatale) {
@@ -65,26 +66,50 @@ if (!$demande) {
 
 $est_auteur = ($id_utilisateur_connecte && $id_utilisateur_connecte == $demande['id_utilisateur']);
 
-// TRAITEMENT : MARQUER COMME TROUVÉ / RÉSOLU ET PURGER PROPOSITIONS + CHATS
+
+// Construction de l'affichage de la catégorie (Parent / Sous-catégorie)
+$affichage_categorie = 'Général';
+if ($demande) {
+    if (!empty($demande['parent_id']) && $demande['parent_id'] > 0 && !empty($demande['nom_parent_categorie'])) {
+        $affichage_categorie = htmlspecialchars($demande['nom_parent_categorie']) . ' / ' . htmlspecialchars($demande['nom_categorie']);
+    } else {
+        $affichage_categorie = htmlspecialchars($demande['nom_categorie'] ?? 'Général');
+    }
+}
+
+
+// TRAITEMENT : CLÔTURE ET SUPPRESSION TOTALE DE LA RECHERCHE (IMAGE + CHAT + RÉPONSES + LIGNE)
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_marquer_trouve'])) {
     if ($est_auteur) {
         try {
-            // 1. Mettre à jour le statut de la recherche
-            $stmt_upd = $bdd->prepare("UPDATE jevend_recherches SET statut = 'trouve' WHERE id_recherche = ?");
-            $stmt_upd->execute([$id_recherche]);
+            // 0. Récupérer le nom de l'image de référence pour l'effacer du serveur
+            $stmt_img = $bdd->prepare("SELECT image_reference FROM jevend_recherches WHERE id_recherche = ?");
+            $stmt_img->execute([$id_recherche]);
+            $img_ref = $stmt_img->fetchColumn();
 
-            // 2. Supprimer les messages de chat liés à cette recherche
+            if (!empty($img_ref) && file_exists('uploads/' . $img_ref)) {
+                @unlink('uploads/' . $img_ref); // Suppression physique du fichier image
+            }
+
+            // 1. Supprimer les messages de chat liés à cette recherche
             $stmt_del_chat = $bdd->prepare("DELETE FROM jevend_chat WHERE id_recherche = ?");
             $stmt_del_chat->execute([$id_recherche]);
 
-            // 3. Supprimer les propositions des vendeurs pour éviter les données orphelines
+            // 2. Supprimer les propositions des vendeurs pour éviter les données orphelines
             $stmt_del_rep = $bdd->prepare("DELETE FROM jevend_reponses_recherche WHERE id_recherche = ?");
             $stmt_del_rep->execute([$id_recherche]);
 
-            $succes = "Félicitations ! Votre demande a été marquée comme résolue et les données associées ont été nettoyées.";
-            $demande['statut'] = 'trouve';
+            // 3. Supprimer définitivement la recherche de la base de données
+            $stmt_del_rech = $bdd->prepare("DELETE FROM jevend_recherches WHERE id_recherche = ?");
+            $stmt_del_rech->execute([$id_recherche]);
+
+            // 4. Redirection propre vers la zone avec un message de succès
+            header("Location: zone_cherche.php?succes_cloture=1");
+            exit();
+
         } catch (PDOException $e) {
-            $erreur = "Erreur lors de la clôture de la recherche : " . $e->getMessage();
+            $erreur = "Erreur lors de la suppression de la recherche : " . $e->getMessage();
         }
     }
 }
@@ -107,7 +132,8 @@ if ($est_auteur) {
     } catch (PDOException $e) { }
 }
 
-// EXTRACTION DES ANNONCES ACTIVES DU VENDEUR CONNECTÉ
+// EXTRACTION DES ANNONCES ACTIVES DU VENDEUR CONNECTÉ - ON NE MELANGE PAS LES JE RECHERCHE AUX ANNONCES
+/************************************************************************* DESACTIVÉ
 $mes_annonces = [];
 if ($id_utilisateur_connecte && !$est_auteur) {
     try {
@@ -122,6 +148,9 @@ if ($id_utilisateur_connecte && !$est_auteur) {
     } catch (PDOException $e) { }
 }
 
+*********************************************************************/
+
+
 // TRAITEMENT DE LA PROPOSITION DU VENDEUR (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_repondre_recherche'])) {
     if (!$id_utilisateur_connecte) {
@@ -133,11 +162,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_repondre_reche
     if ($est_auteur) {
         $erreur = "Vous ne pouvez pas répondre à votre propre demande d'achat.";
     } else {
-        $id_annonce_associee = !empty($_POST['id_annonce_associee']) ? (int)$_POST['id_annonce_associee'] : NULL;
+        $id_annonce_associee = NULL; // Plus d'association d'annonce
         $message_vendeur     = trim($_POST['message_vendeur'] ?? '');
 
-        if (empty($message_vendeur) && empty($id_annonce_associee)) {
-            $erreur = "Veuillez sélectionner une de vos annonces ou rédiger un message à l'acheteur.";
+        if (empty($message_vendeur)) {
+            $erreur = "Veuillez rédiger un message à l'acheteur.";
         } else {
             try {
                 $stmt_ins = $bdd->prepare("
@@ -332,7 +361,7 @@ $jours_restants = ($maintenant < $dt_exp) ? $diff->days : 0;
             <div class="metas-details-ligne">
                 <span>👤 Acheteur : <strong><?= htmlspecialchars($demande['nom_acheteur']) ?></strong></span>
                 <span>📍 Municipalité : <strong style="color:#0284c7;"><?= htmlspecialchars($demande['nom_ville']) ?></strong></span>
-                <span>📁 Catégorie : <strong><?= htmlspecialchars($demande['nom_categorie']) ?></strong></span>
+                <span>📁 Catégorie : <strong><?= $affichage_categorie ?></strong></span>
                 <span>🕒 Reste : <strong><?= $jours_restants ?> jour(s)</strong></span>
             </div>
 
@@ -449,20 +478,7 @@ $jours_restants = ($maintenant < $dt_exp) ? $diff->days : 0;
                 <form action="details_recherche.php?id=<?= $id_recherche ?>" method="POST">
                     <input type="hidden" name="action_repondre_recherche" value="1">
 
-                    <?php if (!empty($mes_annonces)): ?>
-                        <div class="champ-groupe-prop">
-                            <label for="id_annonce_associee">Associer une de vos annonces actives :</label>
-                            <select name="id_annonce_associee" id="id_annonce_associee">
-                                <option value="">-- Aucune (Envoyer un message direct) --</option>
-                                <?php foreach ($mes_annonces as $ma): ?>
-                                    <option value="<?= $ma['id_annonces'] ?>">
-                                        <?= htmlspecialchars($ma['titre_objet_nettoye']) ?> (<?= number_format((float)$ma['prix'], 2, ',', ' ') ?> $)
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    <?php endif; ?>
-
+                   
                     <div class="champ-groupe-prop">
                         <label for="message_vendeur">Votre message à l'acheteur : *</label>
                         <textarea name="message_vendeur" id="message_vendeur" rows="4" placeholder="Bonjour ! J'ai cet objet disponible. Appelez-moi ou textotez-moi au..." required></textarea>

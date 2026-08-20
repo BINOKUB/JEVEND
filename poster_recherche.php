@@ -18,11 +18,23 @@ if (!$id_utilisateur) {
 $erreur = "";
 $succes = "";
 
-// Extraction des catégories
-$categories = [];
+// EXTRACTION DES CATÉGORIES HIÉRARCHISÉES
+$categories_parentes = [];
 try {
-    $stmt_cat = $bdd->query("SELECT id_categorie, nom_fr FROM jevend_categories ORDER BY nom_fr ASC");
-    $categories = $stmt_cat->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_p = $bdd->query("SELECT id_categorie, nom_fr FROM jevend_categories WHERE parent_id IS NULL OR parent_id = 0 ORDER BY nom_fr ASC");
+    $parents = $stmt_p->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($parents as $parent) {
+        $id_p = $parent['id_categorie'];
+        $stmt_s = $bdd->prepare("SELECT id_categorie, nom_fr FROM jevend_categories WHERE parent_id = ? ORDER BY nom_fr ASC");
+        $stmt_s->execute([$id_p]);
+        $sous_cats = $stmt_s->fetchAll(PDO::FETCH_ASSOC);
+
+        $categories_parentes[] = [
+            'parent' => $parent,
+            'enfants' => $sous_cats
+        ];
+    }
 } catch (PDOException $e) { }
 
 // Extraction des villes
@@ -200,14 +212,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_poster_recherc
             <div class="grille-champs-cherche">
                 <div class="champ-groupe-cherche">
                     <label for="id_categorie">Catégorie *</label>
-                    <select name="id_categorie" id="id_categorie" required>
+
+                   <select name="id_categorie" id="id_categorie" required>
                         <option value="0">-- Choisir une catégorie --</option>
-                        <?php foreach ($categories as $cat): ?>
-                            <option value="<?= $cat['id_categorie'] ?>" <?= ($cat['id_categorie'] == $cat_val) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($cat['nom_fr']) ?>
-                            </option>
+                        <?php foreach ($categories_parentes as $groupe): ?>
+                            <optgroup label="📁 <?= htmlspecialchars($groupe['parent']['nom_fr']) ?>">
+                                <option value="<?= $groupe['parent']['id_categorie'] ?>" <?= ($groupe['parent']['id_categorie'] == $cat_val) ? 'selected' : '' ?>>
+                                    &nbsp;&nbsp;📂 <?= htmlspecialchars($groupe['parent']['nom_fr']) ?> (Général)
+                                </option>
+                                <?php foreach ($groupe['enfants'] as $enfant): ?>
+                                    <option value="<?= $enfant['id_categorie'] ?>" <?= ($enfant['id_categorie'] == $cat_val) ? 'selected' : '' ?>>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;↳ 📄 <?= htmlspecialchars($enfant['nom_fr']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </optgroup>
                         <?php endforeach; ?>
                     </select>
+
+
                 </div>
 
                 <div class="champ-groupe-cherche">

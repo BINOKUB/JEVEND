@@ -127,6 +127,12 @@ try {
             💾 Enregistrer et Publier
         </button>
     </form>
+
+
+<br /><br />
+ICI L'INCLUDE _admin_sponsorise.php
+
+
 </div>
 
 <script>
