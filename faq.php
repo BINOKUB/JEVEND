@@ -210,5 +210,10 @@ if ($db_instance) {
             });
         });
     </script>
+<?php 
+if (file_exists('partials/_barre_flottante.php')) {
+    include 'partials/_barre_flottante.php';
+}
+?>
 </body>
 </html>
