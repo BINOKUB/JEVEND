@@ -267,6 +267,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_poster_recherc
             </button>
         </form>
     </div>
-
+<?php 
+if (file_exists('partials/_barre_flottante.php')) {
+    include 'partials/_barre_flottante.php';
+}
+?>
 </body>
 </html>

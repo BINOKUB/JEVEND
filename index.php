@@ -304,5 +304,10 @@ $total_bannieres_flux = count($bannieres_flux);
             .catch(() => { window.location.href = destination; });
     });
     </script>
+<?php 
+if (file_exists('partials/_barre_flottante.php')) {
+    include 'partials/_barre_flottante.php';
+}
+?>
 </body>
 </html>

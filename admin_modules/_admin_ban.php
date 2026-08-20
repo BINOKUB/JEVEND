@@ -130,8 +130,7 @@ try {
 
 
 <br /><br />
-ICI L'INCLUDE _admin_sponsorise.php
-
+<?php include 'admin_modules/_admin_sponsorise.php'; ?>
 
 </div>
 

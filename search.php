@@ -447,5 +447,10 @@ if (!$erreur_caracteres && (!empty($recherche) || $cat_selectionnee > 0 || $vill
     // EXÉCUTION AU CHARGEMENT DE LA PAGE POUR VERROUILLER LE BOUTON SI NÉCESSAIRE
     window.addEventListener('DOMContentLoaded', verifierCompteResultats);
     </script>
+<?php 
+if (file_exists('partials/_barre_flottante.php')) {
+    include 'partials/_barre_flottante.php';
+}
+?>
 </body>
 </html>

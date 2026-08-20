@@ -154,5 +154,10 @@ $email_saisi = $_SESSION['temp_email_connexion'] ?? '';
         }
     });
     </script>
+<?php 
+if (file_exists('partials/_barre_flottante.php')) {
+    include 'partials/_barre_flottante.php';
+}
+?>
 </body>
 </html>

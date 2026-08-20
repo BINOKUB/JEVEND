@@ -195,6 +195,11 @@ $est_pro = (isset($_SESSION['type_compte']) && $_SESSION['type_compte'] === 'pro
     }
 </style>
 
+<?php 
+// Inclusion du module d'affichage du bandeau sponsorisé tout en haut du site
+include '_affiche_sponsorise.php'; 
+?>
+
 <nav class="barre-navigation-globale">
     <div class="nav-top-mobile-row">
         <div class="nav-gauche-publique">
