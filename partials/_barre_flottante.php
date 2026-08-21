@@ -1,6 +1,6 @@
 <?php
 // =============================================================================
-// NOM DU SCRIPT : partials/_barre_flottante.php
+// NOM DU SCRIPT : partials/_barre_flottante.php...
 // REVISION : 1.0 - Barre de navigation fixe en bas d'écran (Réseaux & Raccourcis)
 // =============================================================================
 ?>
