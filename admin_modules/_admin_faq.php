@@ -1,12 +1,13 @@
 <?php
 /*
 ====================================================
-Fichier       : admin_modules/_admin_faq.php
-Révision      : v1.2
-Description   : Module F.A.Q. avec décalage et réindexation automatique des positions
+NOM DU SCRIPT : admin_modules/_admin_faq.php
+REVISION      : v1.6
+Description   : Module F.A.Q. avec éditeur WYSIWYG "maison" intégré, décalage et réindexation automatique
 Nouveautés    : 
-  - Décalage automatique des positions lors de l'insertion d'une question à un rang occupé
-  - Réindexation automatique de la suite (1, 2, 3...) après ajout, modification ou suppression
+  - Éditeur WYSIWYG maison 100% intégré (sans service externe, sans bannière ni bulle jaune)
+  - Boutons de mise en forme (Gras, Italique, Souligné, Liste à puces, Effacer le format)
+  - Synchronisation automatique avec le formulaire de sauvegarde
   - Maintien automatique de l'ancre #onglet-faq
 ====================================================
 */
@@ -41,21 +42,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_faq']) && $db)
     // --- AJOUTER ---
     if ($_POST['action_faq'] === 'ajouter') {
         $question = trim($_POST['question'] ?? '');
-        $reponse  = trim($_POST['reponse'] ?? '');
+        $reponse  = trim($_POST['reponse'] ?? ''); 
         $ordre    = (int)($_POST['ordre'] ?? 1);
         $actif    = isset($_POST['actif']) ? 1 : 0;
 
         if (!empty($question) && !empty($reponse)) {
             try {
-                // Décaler vers le bas toutes les questions ayant un ordre >= à la nouvelle position
                 $stmtShift = $db->prepare("UPDATE jevend_faq SET ordre = ordre + 1 WHERE ordre >= ?");
                 $stmtShift->execute([$ordre]);
 
-                // Insérer la nouvelle question
                 $stmt = $db->prepare("INSERT INTO jevend_faq (question, reponse, ordre, actif) VALUES (?, ?, ?, ?)");
                 $stmt->execute([$question, $reponse, $ordre, $actif]);
 
-                // Nettoyer et réindexer la suite
                 reindexerFaq($db);
 
                 $msg_succes = "La question a été ajoutée et le classement a été décalé automatiquement !";
@@ -71,24 +69,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_faq']) && $db)
     if ($_POST['action_faq'] === 'modifier') {
         $id       = (int)($_POST['faq_id'] ?? 0);
         $question = trim($_POST['question'] ?? '');
-        $reponse  = trim($_POST['reponse'] ?? '');
+        $reponse  = trim($_POST['reponse'] ?? ''); 
         $ordre    = (int)($_POST['ordre'] ?? 1);
         $actif    = isset($_POST['actif']) ? 1 : 0;
 
         if ($id > 0 && !empty($question) && !empty($reponse)) {
             try {
-                // Récupérer l'ancienne position
                 $stmtCur = $db->prepare("SELECT ordre FROM jevend_faq WHERE id = ?");
                 $stmtCur->execute([$id]);
                 $old_ordre = (int)$stmtCur->fetchColumn();
 
                 if ($old_ordre !== $ordre) {
                     if ($ordre < $old_ordre) {
-                        // Déplacement vers le haut : pousse les intermédiaires vers le bas
                         $stmtShift = $db->prepare("UPDATE jevend_faq SET ordre = ordre + 1 WHERE ordre >= ? AND ordre < ? AND id != ?");
                         $stmtShift->execute([$ordre, $old_ordre, $id]);
                     } else {
-                        // Déplacement vers le bas : tire les intermédiaires vers le haut
                         $stmtShift = $db->prepare("UPDATE jevend_faq SET ordre = ordre - 1 WHERE ordre > ? AND ordre <= ? AND id != ?");
                         $stmtShift->execute([$old_ordre, $ordre, $id]);
                     }
@@ -97,7 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_faq']) && $db)
                 $stmt = $db->prepare("UPDATE jevend_faq SET question = ?, reponse = ?, ordre = ?, actif = ? WHERE id = ?");
                 $stmt->execute([$question, $reponse, $ordre, $actif, $id]);
 
-                // Nettoyer et réindexer la suite
                 reindexerFaq($db);
 
                 $msg_succes = "La question #{$id} a été mise à jour et le classement a été réorganisé !";
@@ -131,7 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_faq']) && $db)
                 $stmt = $db->prepare("DELETE FROM jevend_faq WHERE id = ?");
                 $stmt->execute([$id]);
 
-                // Réindexer après suppression pour combler le vide
                 reindexerFaq($db);
 
                 $msg_succes = "La question #{$id} a été supprimée et la liste a été réindexée.";
@@ -213,14 +206,53 @@ if ($db) {
     }
 
     .faq-form-group input[type="text"],
-    .faq-form-group input[type="number"],
-    .faq-form-group textarea {
+    .faq-form-group input[type="number"] {
         width: 100%;
         padding: 10px;
         border: 1px solid #cbd5e1;
         border-radius: 6px;
         font-size: 0.9rem;
         box-sizing: border-box;
+    }
+
+    /* STYLES DE NOTRE ÉDITEUR WYSIWYG MAISON */
+    .jv-wysiwyg-container {
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: #ffffff;
+        overflow: hidden;
+    }
+    .jv-wysiwyg-toolbar {
+        background: #f1f5f9;
+        padding: 8px 12px;
+        border-bottom: 1px solid #cbd5e1;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .jv-wysiwyg-btn {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #334155;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.1s;
+    }
+    .jv-wysiwyg-btn:hover {
+        background: #e2e8f0;
+    }
+    .jv-wysiwyg-editor {
+        min-height: 160px;
+        max-height: 350px;
+        overflow-y: auto;
+        padding: 12px;
+        font-size: 0.95rem;
+        color: #1e293b;
+        line-height: 1.5;
+        outline: none;
     }
 
     .faq-form-row {
@@ -320,7 +352,7 @@ if ($db) {
             <?= $faq_a_modifier ? "✏️ Modifier la question #".$faq_a_modifier['id'] : "➕ Ajouter une nouvelle question" ?>
         </h3>
 
-        <form method="POST" action="#onglet-faq">
+        <form method="POST" action="#onglet-faq" id="faqForm">
             <input type="hidden" name="action_faq" value="<?= $faq_a_modifier ? 'modifier' : 'ajouter' ?>">
             <?php if ($faq_a_modifier): ?>
                 <input type="hidden" name="faq_id" value="<?= $faq_a_modifier['id'] ?>">
@@ -331,9 +363,22 @@ if ($db) {
                 <input type="text" id="question" name="question" required value="<?= htmlspecialchars($faq_a_modifier['question'] ?? '') ?>" placeholder="Ex: Comment acheter de l'affichage ?">
             </div>
 
+            <!-- ÉDITEUR WYSIWYG MAISON -->
             <div class="faq-form-group">
-                <label for="reponse">Réponse :</label>
-                <textarea id="reponse" name="reponse" rows="4" required placeholder="Saisissez l'explication détaillée ici..."><?= htmlspecialchars($faq_a_modifier['reponse'] ?? '') ?></textarea>
+                <label>Réponse (Éditeur visuel Jevend) :</label>
+                <div class="jv-wysiwyg-container">
+                    <div class="jv-wysiwyg-toolbar">
+                        <button type="button" class="jv-wysiwyg-btn" onclick="formatText('bold')"><b>Gras</b></button>
+                        <button type="button" class="jv-wysiwyg-btn" onclick="formatText('italic')"><i>Italique</i></button>
+                        <button type="button" class="jv-wysiwyg-btn" onclick="formatText('underline')"><u>Souligné</u></button>
+                        <button type="button" class="jv-wysiwyg-btn" onclick="formatText('insertUnorderedList')">• Liste à puces</button>
+                        <button type="button" class="jv-wysiwyg-btn" onclick="formatText('removeFormat')">Effacer style</button>
+                    </div>
+                    <!-- Zone éditable -->
+                    <div id="editorZone" class="jv-wysiwyg-editor" contenteditable="true" placeholder="Saisissez l'explication détaillée ici..."><?= $faq_a_modifier['reponse'] ?? '' ?></div>
+                </div>
+                <!-- Champ caché qui contiendra le HTML pour la BDD -->
+                <input type="hidden" id="reponse" name="reponse" value="<?= htmlspecialchars($faq_a_modifier['reponse'] ?? '') ?>">
             </div>
 
             <div class="faq-form-row faq-form-group">
@@ -361,6 +406,20 @@ if ($db) {
         </form>
     </div>
 
+    <!-- SCRIPT DE GESTION DE L'ÉDITEUR MAISON -->
+    <script>
+    function formatText(command) {
+        document.execCommand(command, false, null);
+        document.getElementById('editorZone').focus();
+    }
+
+    // Synchroniser l'éditeur avec le champ caché avant soumission du formulaire
+    document.getElementById('faqForm').addEventListener('submit', function() {
+        var htmlContent = document.getElementById('editorZone').innerHTML;
+        document.getElementById('reponse').value = htmlContent;
+    });
+    </script>
+
     <!-- TABLEAU DE NAVIGATION & GESTION -->
     <h3 style="font-size: 1.1rem; color: #0f172a; margin-bottom: 10px;">📋 Questions actuellement enregistrées</h3>
 
@@ -381,7 +440,7 @@ if ($db) {
                         <td>
                             <strong><?= htmlspecialchars($item['question']) ?></strong>
                             <div style="color: #64748b; font-size: 0.8rem; margin-top: 4px;">
-                                <?= htmlspecialchars(mb_strimwidth($item['reponse'], 0, 90, "...")) ?>
+                                <?= mb_strimwidth(strip_tags($item['reponse']), 0, 90, "...") ?>
                             </div>
                         </td>
                         <td>

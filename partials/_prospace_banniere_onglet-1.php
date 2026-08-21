@@ -48,7 +48,9 @@
                     <input type="file" name="image_banniere" id="input-image-banniere" accept="image/jpeg,image/png,image/webp" required style="width: 100%; padding: 8px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
                     
                     <div style="margin-top: 8px; padding: 10px; background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 4px; font-size: 0.8rem; color: #1e3a8a;">
-                        💡 <strong>Optimisation automatique :</strong> Téléversez simplement votre visuel. Le serveur effectue le recadrage centré et l'optimisation HD automatiquement.
+                        💡 <strong>Optimisation automatique :</strong> Téléversez simplement votre visuel. Le serveur effectue le recadrage centré et l'optimisation HD automatiquement.<br />
+                          💡  <strong>Horizontal</strong> (Ratio 4:1 ou 6:1), 1200 x 300 pixels.<br />
+                         💡   <strong>Carré</strong> Ratio 1:1 ou 4:3), 600 x 600 pixels
                     </div>
                 </div>
 
@@ -75,9 +77,22 @@
                             </label>
                         </div>
 
-                        <p style="font-size: 0.85rem; color: #64748b;">
-                            Carrousel haut de page principal (3 slots max en circulation).
-                        </p>
+                        <p style="font-size: 0.85rem; color: #64748b;">   Carrousel haut de page principal (3 slots max en circulation).  </p>
+
+                <p style="font-size: 0.85rem; color: #64748b;"> 
+
+                            🪧 Pour le Grand Bandeau d'en-tête (Format Panoramique)<BR />
+💡 Guide de l'image (Bandeau d'en-tête) :<BR /><BR />
+
+Format idéal : Horizontal large (Ratio d'environ 4:1 ou 6:1).<BR />
+
+Dimension conseillée : 1200 x 300 pixels (minimum 800 x 200 px).<BR />
+
+Formats acceptés : JPG, PNG ou WEBP (Max 5 Mo).<BR /><BR />
+
+Astuce : Privilégiez un visuel où l'information importante ou votre logo est bien centré. Notre système ajuste et optimise automatiquement le cadrage pour s'adapter à tous les écrans.
+
+                            </p>
                         
                         <?php if ($nb_supreme_global >= 3): ?>
                             <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 0.85rem; margin: 20px 0; border: 1px solid #fecaca;">
@@ -122,7 +137,21 @@
                         </div>
 
                         <p style="font-size: 0.85rem; color: #64748b;">
-                            Pavés rotatifs haute visibilité sous l'en-tête (20 slots max au total).
+                           Pavés rotatifs haute visibilité sous l'en-tête (20 slots max au total).          
+                        </p>
+
+                        <p style="font-size: 0.85rem; color: #64748b;">
+                            🔲 Pour les Pavés Publicitaires (Format Carré / Carte)<BR />
+                            💡 Guide de l'image (Pavé publicitaire) :<BR /><BR />
+
+                            Format idéal : Carré ou légèrement rectangulaire (Ratio 1:1 ou 4:3).<BR />
+
+                            Dimension conseillée : 600 x 600 pixels (minimum 400 x 400 px).<BR />
+
+                            Formats acceptés : JPG, PNG ou WEBP (Max 5 Mo).<BR />
+
+                            Astuce : Idéal pour mettre en avant un produit phare, une photo de votre devanture ou un logo épuré.
+    
                         </p>
                         
                         <?php if ($nb_premium_global >= 20): ?>

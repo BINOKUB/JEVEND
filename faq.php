@@ -1,13 +1,13 @@
 <?php
 /*
 ====================================================
-Fichier       : faq.php
-Révision      : v1.4
-Description   : Page publique F.A.Q. avec intégration de la barre de navigation
+NOM DU SCRIPT : faq.php
+REVISION      : v1.5
+Description   : Page publique F.A.Q. avec rendu HTML propre (WYSIWYG compatible)
 Nouveautés    : 
-  - Ajout de session_start() pour la détection du compte utilisateur
-  - Inclusion directe de partials/_nav_publique.php dans le body
-  - Conservation du thème clair et de l'accordéon (+/-)
+  - Affichage direct du HTML brut stocké par l'éditeur visuel de l'admin
+  - Ajout de règles CSS de nettoyage pour harmoniser le texte enrichi (listes, paragraphes, styles)
+  - Intégration de la session et des barres de navigation et flottante
 ====================================================
 */
 
@@ -138,9 +138,21 @@ if ($db_instance) {
         }
 
         .faq-item.active .faq-answer {
-            max-height: 1000px;
+            max-height: 1500px;
             padding: 18px 20px;
             border-top: 1px solid #e2e8f0;
+        }
+
+        /* Nettoyage et harmonisation du HTML enrichi provenant de l'éditeur */
+        .faq-answer p {
+            margin: 0 0 10px 0;
+        }
+        .faq-answer ul, .faq-answer ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .faq-answer li {
+            margin-bottom: 5px;
         }
 
         .faq-alert {
@@ -158,9 +170,9 @@ if ($db_instance) {
 
     <!-- INCLUSION DE LA BARRE DE NAVIGATION -->
     <?php 
-  
-        include_once 'partials/_nav_publique.php';
-  
+        if (file_exists('partials/_nav_publique.php')) {
+            include_once 'partials/_nav_publique.php';
+        }
     ?>
 
     <main class="faq-container">
@@ -179,8 +191,9 @@ if ($db_instance) {
                         <span><?= htmlspecialchars($faq['question']) ?></span>
                         <span class="faq-toggle">+</span>
                     </button>
+                    <!-- Affichage du HTML brut de l'éditeur WYSIWYG -->
                     <div class="faq-answer">
-                        <?= nl2br(htmlspecialchars($faq['reponse'])) ?>
+                        <?= $faq['reponse'] ?>
                     </div>
                 </div>
             <?php endforeach; ?>
