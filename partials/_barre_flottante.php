@@ -67,6 +67,6 @@
         <span style="color: #64748b;" class="texte-desktop">Suivez-nous :</span>
         <a href="https://www.facebook.com/jevend.officiel/" target="_blank" title="Facebook" style="font-weight: bold; font-size: 1rem;">facebook</a>
         <a href="https://youtube.com" target="_blank" title="YouTube" style="font-weight: bold; font-size: 0.9rem;">▶</a>
-        <a href="http://jevend.com/connexion.php" class="btn-action-rapide">+ Poster</a>
+        <a href="connexion.php" class="btn-action-rapide">+ Poster</a>
     </div>
 </div>
