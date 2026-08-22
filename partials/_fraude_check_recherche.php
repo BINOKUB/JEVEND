@@ -59,7 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_envoyer_signal
     }
 }
 ?>
-
+<!-- ON AFFICHE LE BLOC UNIQUEMENT SI LE MEMBRE EST CONNECTÉ -->
+<?php if ($id_user_actuel > 0): ?>
 <!-- BLOC VISUEL DU SIGNALEMENT -->
 <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #cbd5e1; font-size: 0.85rem;">
     
@@ -129,3 +130,4 @@ function basculerFormulaireSignalement() {
     }
 }
 </script>
+<?php endif; ?>
