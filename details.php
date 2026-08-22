@@ -243,6 +243,9 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
                 </div>
             <?php endif; ?>
 
+            <?php include 'partials/_fraude_check_annonce.php'; ?>
+
+
             <a href="index.php" class="btn-retour" style="margin-top: 15px;">← Retour au fil d'actualité</a>
         </div>
     </div>

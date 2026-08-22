@@ -132,23 +132,7 @@ if ($est_auteur) {
     } catch (PDOException $e) { }
 }
 
-// EXTRACTION DES ANNONCES ACTIVES DU VENDEUR CONNECTÉ - ON NE MELANGE PAS LES JE RECHERCHE AUX ANNONCES
-/************************************************************************* DESACTIVÉ
-$mes_annonces = [];
-if ($id_utilisateur_connecte && !$est_auteur) {
-    try {
-        $stmt_a = $bdd->prepare("
-            SELECT id_annonces, titre_objet_nettoye, prix 
-            FROM jevend_annonces 
-            WHERE id_utilisateur = ? AND statut = 'actif' 
-            ORDER BY date_creation DESC
-        ");
-        $stmt_a->execute([$id_utilisateur_connecte]);
-        $mes_annonces = $stmt_a->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) { }
-}
 
-*********************************************************************/
 
 
 // TRAITEMENT DE LA PROPOSITION DU VENDEUR (POST)
@@ -376,7 +360,10 @@ $jours_restants = ($maintenant < $dt_exp) ? $diff->days : 0;
                 <?= !empty($demande['description']) ? htmlspecialchars($demande['description']) : '<i>Aucune précision supplémentaire fournie par l\'acheteur.</i>' ?>
             </div>
 
-            <a href="zone_cherche.php" style="color:#2563eb; text-decoration:none; font-weight:bold; font-size:0.9rem;">
+             <!-- 🚩 C'EST ICI QU'IL FAUT PLACER TON INCLUDE -->
+            <?php include 'partials/_fraude_check_recherche.php'; ?>
+
+            <a href="zone_cherche.php" style="color:#2563eb; text-decoration:none; font-weight:bold; font-size:0.9rem;"><br />
                 ← Retour à toutes les demandes "Je Cherche"
             </a>
         </div>
