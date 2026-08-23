@@ -132,6 +132,18 @@ require_once 'config.php';
             <?php if (file_exists('admin_modules/_admin_rpm.php')) include 'admin_modules/_admin_rpm.php'; ?>
         </div>
 
+
+        <!-- MODULE 8 : RPM (Régulation, Publicités & Métriques) -->
+        <div id="onglet-rpm" class="section-panneau">
+            <?php if (file_exists('admin_modules/_admin_rpm.php')) include 'admin_modules/_admin_rpm.php'; ?>
+        </div>
+
+        <!-- MODULE 9 : FRAUDE & SIGNALEMENTS -->
+        <div id="onglet-fraude" class="section-panneau">
+            <?php if (file_exists('admin_modules/_fraude_verif.php')) include 'admin_modules/_fraude_verif.php'; ?>
+        </div>
+
+
     </div>
 
 </body>
