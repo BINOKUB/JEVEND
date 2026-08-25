@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratoire de Test - Vitrine du Village</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f1f5f9; color: #334155; }
+        .banniere-site { background: #0f172a; color: #ffffff; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .banniere-site h1 { margin: 0; font-size: 1.4rem; }
+        .barre-outils-test { background: #e2e8f0; padding: 10px 20px; display: flex; gap: 15px; align-items: center; font-size: 0.85rem; flex-wrap: wrap; }
+        .barre-outils-test select { padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1; }
+        
+        .conteneur-test { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .boite-widget { background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-top: 4px solid #2563eb; }
+    </style>
+</head>
+<body>
+
+    <div class="banniere-site">
+        <h1>Binokub (Laboratoire de Test - Formats IAB)</h1>
+        <span>Testeur de Widgets adaptatifs</span>
+    </div>
+
+    <!-- Barre de choix du format IAB -->
+    <div class="barre-outils-test">
+        <strong>🧪 Choisir le format à tester :</strong>
+        <select id="select-format" onchange="changerFormatTest()">
+            <option value="leaderboard">Leaderboard (728 x 90 px)</option>
+            <option value="rectangle">Rectangle moyen (300 x 250 px)</option>
+            <option value="grand_rectangle">Grand rectangle (336 x 280 px)</option>
+            <option value="skyscraper">Skyscraper (160 x 600 px)</option>
+            <option value="demi_page">Demi-page / Grand-angle (300 x 600 px)</option>
+            <option value="banniere_mobile">Bannière mobile (320 x 50 px)</option>
+            <option value="sidebar">Sidebar classique</option>
+        </select>
+    </div>
+
+    <!-- Zone d'affichage du widget testé -->
+    <div class="conteneur-test">
+        <div class="boite-widget">
+            <h3 id="titre-format-actif" style="margin-top:0; color: #1e3a8a; font-size: 1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Aperçu du format</h3>
+            <div id="jevend-widget-container">Chargement...</div>
+        </div>
+    </div>
+
+    <script>
+        // Ton token propre (sans parasite)
+        const TOKEN_PARTENAIRE = '29e1d03dff454e826024cdccd05a6bfe';
+
+        function chargerWidget(format) {
+            document.getElementById('jevend-widget-container').innerHTML = 'Chargement...';
+            
+            fetch('http://jevend.com/api_vitrine.php?format=' + format + '&limit=4&token=' + TOKEN_PARTENAIRE)
+                .then(res => res.text())
+                .then(html => { 
+                    document.getElementById('jevend-widget-container').innerHTML = html; 
+                })
+                .catch(err => {
+                    document.getElementById('jevend-widget-container').innerHTML = 'Erreur de chargement';
+                });
+        }
+
+        function changerFormatTest() {
+            let format = document.getElementById('select-format').value;
+            document.getElementById('titre-format-actif').innerText = "Aperçu du format : " + format.toUpperCase();
+            chargerWidget(format);
+        }
+
+        // Chargement initial au démarrage
+        chargerWidget('leaderboard');
+    </script>
+
+</body>
+</html>

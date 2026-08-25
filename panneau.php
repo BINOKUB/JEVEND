@@ -143,6 +143,16 @@ require_once 'config.php';
             <?php if (file_exists('admin_modules/_fraude_verif.php')) include 'admin_modules/_fraude_verif.php'; ?>
         </div>
 
+        <!-- MODULE 10 : FRAUDE & CHAT (Scanner silencieux) -->
+<div id="onglet-fraude-chat" class="section-panneau">
+    <?php if (file_exists('admin_modules/_fraude_chat.php')) include 'admin_modules/_fraude_chat.php'; ?>
+</div>
+
+            <!-- MODULE 11 : VITRINE DU VILLAGE -->
+<div id="onglet-vitrine" class="section-panneau">
+    <?php if (file_exists('admin_modules/_vitrine_admin.php')) include 'admin_modules/_vitrine_admin.php'; ?>
+</div>
+
 
     </div>
 
