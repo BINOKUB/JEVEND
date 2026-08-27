@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Intégration Vitrine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 20px;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .zone-pub {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Page de test partenaire</h1>
+        <p>Ceci est un exemple de page externe simulant l'intégration du module JEVEND.</p>
+
+        <!-- Emplacement du widget publicitaire -->
+        <div class="zone-pub">
+            <!-- COLLE TON SNIPPET DE SCRIPT ICI -->
+<!-- Widget Jevend.com - Municipalite Riviere Ouelle -->
+<div id="jevend-vitrine-4"></div>
+<script>
+    fetch('http://jevend.com/api_vitrine.php?format=demi_page&limit=5&token=c57cedba0aeda4bf4c34f6b985489bae')
+        .then(res => res.text())
+        .then(html => { document.getElementById('jevend-vitrine-4').innerHTML = html; })
+        .catch(err => console.log('Erreur chargement vitrine'));
+</script>
+                        
+                                                
+            
+        </div>
+
+    </div>
+
+</body>
+</html>

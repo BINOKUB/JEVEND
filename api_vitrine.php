@@ -1,7 +1,9 @@
 <?php
 // =============================================================================
 // SCRIPT      : api_vitrine.php
-// REVISION    : 4.3 - Stable, anti-plantage, support complet des formats IAB et cache
+// PROJET      : JEVEND | BRANCHE : main
+// REVISION    : 1.2 | AUTEUR : Dan | DATE : 2026-08-27
+// DESC        : Filtrage ville par JOIN (annonces -> utilisateurs -> villes)
 // =============================================================================
 
 header("Access-Control-Allow-Origin: *");
@@ -14,32 +16,105 @@ $token  = trim($_GET['token'] ?? '');
 $limit  = (int)($_GET['limit'] ?? 4);
 if ($limit < 1 || $limit > 10) { $limit = 4; }
 
+// --- 1. RÉCUPÉRATION DE LA VILLE DE FILTRAGE VIA LE TOKEN PARTENAIRE ---
+$ville_filtre = '';
+
+if (!empty($token)) {
+    try {
+        $stmt_partenaire = $bdd->prepare("
+            SELECT ville_filtre 
+            FROM jevend_annuaire_partenaire 
+            WHERE widget_token = ? 
+            LIMIT 1
+        ");
+        $stmt_partenaire->execute([$token]);
+        $partenaire = $stmt_partenaire->fetch(PDO::FETCH_ASSOC);
+
+        if ($partenaire && !empty($partenaire['ville_filtre'])) {
+            $ville_filtre = trim($partenaire['ville_filtre']);
+        }
+    } catch (PDOException $e) {
+        // En cas d'erreur SQL, on poursuit sans filtre
+    }
+}
+
+// --- 2. GESTION DU CACHE UNIQUE ---
 $cache_dir = __DIR__ . '/widgets_cache/';
 if (!is_dir($cache_dir)) { 
     @mkdir($cache_dir, 0777, true); 
 }
 
-// Nom du fichier de cache unique
-$cache_file = $cache_dir . 'widget_' . md5($token . $format . $limit) . '.json';
+$cache_file = $cache_dir . 'widget_' . md5($token . $format . $limit . $ville_filtre) . '.json';
 
-// Si le cache existe et a moins de 30 minutes
 if (file_exists($cache_file) && (time() - filemtime($cache_file) < 1800)) {
     echo file_get_contents($cache_file);
     exit;
 }
 
+// --- 3. REQUÊTE SQL AVEC JOINTURE POUR EXTRAIRE LA VILLE ---
 try {
-    // Requête principale ultra-stable basée sur ta table jevend_annonces
-    $stmt = $bdd->prepare("
-        SELECT id_annonces, titre_objet_nettoye, prix, image_courante 
-        FROM jevend_annonces 
-        WHERE statut = 'actif' 
-        ORDER BY date_creation DESC 
-        LIMIT ?
-    ");
-    $stmt->bindValue(1, $limit, PDO::PARAM_INT);
-    $stmt->execute();
-    $annonces = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($ville_filtre)) {
+        // Requête filtrée via la ville du membre qui a publié l'annonce
+        $stmt = $bdd->prepare("
+            SELECT 
+                a.id_annonces, 
+                a.titre_objet_nettoye, 
+                a.prix, 
+                a.image_courante,
+                v.nom_ville
+            FROM jevend_annonces a
+            INNER JOIN jevend_utilisateurs u ON a.id_utilisateur = u.id_utilisateur
+            INNER JOIN jevend_villes v ON u.id_ville = v.id_ville
+            WHERE a.statut = 'actif' 
+              AND LOWER(v.nom_ville) = LOWER(?) 
+            ORDER BY a.date_creation DESC 
+            LIMIT ?
+        ");
+        $stmt->bindValue(1, $ville_filtre, PDO::PARAM_STR);
+        $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        $annonces = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Fallback : Si 0 annonce trouvée pour cette ville, on charge les plus récentes globales
+        if (empty($annonces)) {
+            $stmt_fallback = $bdd->prepare("
+                SELECT 
+                    a.id_annonces, 
+                    a.titre_objet_nettoye, 
+                    a.prix, 
+                    a.image_courante,
+                    v.nom_ville
+                FROM jevend_annonces a
+                INNER JOIN jevend_utilisateurs u ON a.id_utilisateur = u.id_utilisateur
+                INNER JOIN jevend_villes v ON u.id_ville = v.id_ville
+                WHERE a.statut = 'actif' 
+                ORDER BY a.date_creation DESC 
+                LIMIT ?
+            ");
+            $stmt_fallback->bindValue(1, $limit, PDO::PARAM_INT);
+            $stmt_fallback->execute();
+            $annonces = $stmt_fallback->fetchAll(PDO::FETCH_ASSOC);
+        }
+    } else {
+        // Requête globale sans filtre de ville
+        $stmt = $bdd->prepare("
+            SELECT 
+                a.id_annonces, 
+                a.titre_objet_nettoye, 
+                a.prix, 
+                a.image_courante,
+                v.nom_ville
+            FROM jevend_annonces a
+            INNER JOIN jevend_utilisateurs u ON a.id_utilisateur = u.id_utilisateur
+            INNER JOIN jevend_villes v ON u.id_ville = v.id_ville
+            WHERE a.statut = 'actif' 
+            ORDER BY a.date_creation DESC 
+            LIMIT ?
+        ");
+        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        $annonces = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
 } catch (PDOException $e) {
     $annonces = [];
@@ -56,7 +131,7 @@ if (empty($annonces)) {
         $html_output .= '<div style="font-family: Arial, sans-serif; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; max-width: 100%; overflow-x: auto; display: flex; gap: 10px; align-items: center;">';
         $html_output .= '<div style="font-size: 0.75rem; font-weight: bold; color: #64748b; writing-mode: vertical-lr; text-align: center;">JEVEND</div>';
         foreach ($annonces as $a) {
-            $lien = 'http://jevend.com/vitrine_clic.php?id=' . $a['id_annonces'] . '&token=' . urlencode($token);
+            $lien = 'vitrine_clic.php?id=' . $a['id_annonces'] . '&token=' . urlencode($token);
             $img = !empty($a['image_courante']) ? 'uploads/' . htmlspecialchars($a['image_courante']) : 'uploads/default.jpg';
             $prix = !empty($a['prix']) ? number_format($a['prix'], 2, ',', ' ') . ' $' : '';
             
@@ -78,12 +153,12 @@ if (empty($annonces)) {
         
         $html_output .= '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px;">';
         $html_output .= '<span style="font-size: 0.82rem; font-weight: bold; color: #1e3a8a;">🛒 Annonces Locales</span>';
-        $html_output .= '<a href="http://jevend.com" target="_blank" style="font-size: 0.68rem; color: #2563eb; text-decoration: none;">Jevend.com ↗</a>';
+        $html_output .= '<a href="#" target="_blank" style="font-size: 0.68rem; color: #2563eb; text-decoration: none;">Jevend.com ↗</a>';
         $html_output .= '</div>';
 
         $html_output .= '<div style="display: flex; flex-direction: column; gap: 8px;">';
         foreach ($annonces as $a) {
-            $lien = 'http://jevend.com/vitrine_clic.php?id=' . $a['id_annonces'] . '&token=' . urlencode($token);
+            $lien = 'vitrine_clic.php?id=' . $a['id_annonces'] . '&token=' . urlencode($token);
             $img = !empty($a['image_courante']) ? 'uploads/' . htmlspecialchars($a['image_courante']) : 'uploads/default.jpg';
             $prix = !empty($a['prix']) ? number_format($a['prix'], 2, ',', ' ') . ' $' : 'Prix libre';
 
@@ -101,7 +176,7 @@ if (empty($annonces)) {
         $html_output .= '</div>';
 
         $html_output .= '<div style="text-align: right; margin-top: 8px; border-top: 1px solid #f1f5f9; padding-top: 4px;">';
-        $html_output .= '<a href="http://jevend.com" target="_blank" style="font-size: 0.65rem; color: #94a3b8; text-decoration: none;">Propulsé par Jevend.com</a>';
+        $html_output .= '<a href="#" target="_blank" style="font-size: 0.65rem; color: #94a3b8; text-decoration: none;">Propulsé par Jevend.com</a>';
         $html_output .= '</div>';
 
         $html_output .= '</div>';
@@ -115,7 +190,7 @@ if (empty($annonces)) {
         $html_output .= '<div style="font-size: 0.78rem; font-weight: bold; color: #1e3a8a; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px; text-align: center;">🛒 Annonces Locales</div>';
         
         foreach ($annonces as $a) {
-            $lien = 'http://jevend.com/vitrine_clic.php?id=' . $a['id_annonces'] . '&token=' . urlencode($token);
+            $lien = 'vitrine_clic.php?id=' . $a['id_annonces'] . '&token=' . urlencode($token);
             $img = !empty($a['image_courante']) ? 'uploads/' . htmlspecialchars($a['image_courante']) : 'uploads/default.jpg';
             $prix = !empty($a['prix']) ? number_format($a['prix'], 2, ',', ' ') . ' $' : 'Prix libre';
 
@@ -135,7 +210,7 @@ if (empty($annonces)) {
     // --- 4. BANNIÈRE MOBILE (320 x 50) ---
     elseif ($format === 'banniere_mobile') {
         $a = $annonces[0];
-        $lien = 'http://jevend.com/vitrine_clic.php?id=' . $a['id_annonces'] . '&token=' . urlencode($token);
+        $lien = 'vitrine_clic.php?id=' . $a['id_annonces'] . '&token=' . urlencode($token);
         $img = !empty($a['image_courante']) ? 'uploads/' . htmlspecialchars($a['image_courante']) : 'uploads/default.jpg';
         $prix = !empty($a['prix']) ? number_format($a['prix'], 2, ',', ' ') . ' $' : '';
 
@@ -149,7 +224,7 @@ if (empty($annonces)) {
     }
 }
 
-// Enregistrement propre dans le cache
+// Sauvegarde dans le cache
 @file_put_contents($cache_file, $html_output);
 @chmod($cache_file, 0777);
 

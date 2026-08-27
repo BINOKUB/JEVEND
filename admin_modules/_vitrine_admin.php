@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // SCRIPT      : admin_modules/_vitrine_admin.php
-// REVISION    : 3.1 - Gestion complète avec formats élargis et rafraîchissement de cache ciblé
+// REVISION    : 3.2 - Intégration du menu déroulant dynamique des villes (jevend_villes)
 // =============================================================================
 
 if (!defined('ROOT_DIR') && basename($_SERVER['SCRIPT_FILENAME']) === '_vitrine_admin.php') {
@@ -73,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($fichiers as $f) {
                     if (is_file($f)) {
                         $contenu_cache = @file_get_contents($f);
-                        // Si le token de ce partenaire se trouve dans le fichier de cache, on le supprime
                         if (strpos($contenu_cache, $token_cible) !== false) {
                             @unlink($f);
                             $suppr_count++;
@@ -87,13 +86,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Récupération de la liste des partenaires et du nombre d'annonces
+// Récupération de la liste des partenaires, du nombre d'annonces et des villes existantes
 try {
     $partenaires = $bdd->query("SELECT * FROM jevend_annuaire_partenaire ORDER BY date_creation DESC")->fetchAll(PDO::FETCH_ASSOC);
     $total_actives = $bdd->query("SELECT COUNT(*) FROM jevend_annonces WHERE statut = 'actif'")->fetchColumn();
+    
+    // Extraction de la liste des villes pour le menu déroulant
+    $liste_villes = $bdd->query("SELECT nom_ville FROM jevend_villes ORDER BY nom_ville ASC")->fetchAll(PDO::FETCH_COLUMN);
 } catch (PDOException $e) {
     $partenaires = [];
     $total_actives = 0;
+    $liste_villes = [];
 }
 ?>
 
@@ -144,7 +147,7 @@ try {
 
             <div>
                 <label style="display: block; font-size: 0.8rem; font-weight: bold; color: #334155; margin-bottom: 4px;">Format de Widget</label>
-               <select name="format_widget" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; background: #ffffff;">
+                <select name="format_widget" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; background: #ffffff;">
                     <option value="leaderboard">Leaderboard (728 x 90 px)</option>
                     <option value="rectangle">Rectangle moyen (300 x 250 px)</option>
                     <option value="grand_rectangle">Grand rectangle (336 x 280 px)</option>
@@ -158,7 +161,12 @@ try {
 
             <div>
                 <label style="display: block; font-size: 0.8rem; font-weight: bold; color: #334155; margin-bottom: 4px;">Filtre Géographique (Optionnel)</label>
-                <input type="text" name="ville_filtre" placeholder="ex: Matane (laisser vide pour tout)" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem;">
+                <select name="ville_filtre" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; background: #ffffff;">
+                    <option value="">🌐 Toutes les villes (Aucun filtre)</option>
+                    <?php foreach ($liste_villes as $v): ?>
+                        <option value="<?= htmlspecialchars($v) ?>"><?= htmlspecialchars($v) ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <div style="grid-column: span 2; text-align: right; margin-top: 5px;">
@@ -186,6 +194,8 @@ try {
                             <a href="<?= htmlspecialchars($p['url_site']) ?>" target="_blank" style="font-size: 0.8rem; color: #2563eb; margin-left: 10px; text-decoration: none;"><?= htmlspecialchars($p['url_site']) ?> ↗</a>
                             <?php if(!empty($p['ville_filtre'])): ?>
                                 <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Zone : <?= htmlspecialchars($p['ville_filtre']) ?></span>
+                            <?php else: ?>
+                                <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Zone : Toutes les villes</span>
                             <?php endif; ?>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center; font-size: 0.82rem;">
@@ -212,7 +222,7 @@ try {
 
                     <div>
                         <label style="display: block; font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 3px;">Code Widget Personnalisé :</label>
-                        <textarea readonly style="width: 100%; height: 75px; padding: 8px; font-family: monospace; font-size: 0.78rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #0f172a;" onclick="this.select();">
+                        <textarea readonly style="width: 100%; height: 75px; font-family: monospace; font-size: 0.78rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #0f172a;" onclick="this.select();">
 <!-- Widget Jevend.com - <?= htmlspecialchars($p['nom_partenaire']) ?> -->
 <div id="jevend-vitrine-<?= $p['id_partenaire'] ?>"></div>
 <script>
