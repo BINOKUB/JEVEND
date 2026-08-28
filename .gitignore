@@ -4,3 +4,4 @@ uploads/*
 !uploads/bannieres/.gitkeep
 test*.php
 TEST*.PHP
+test*.html
