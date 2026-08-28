@@ -1,0 +1,29 @@
+<div style="font-family: Arial, sans-serif; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; width: 100%; max-width: 300px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;"><div style="font-size: 0.78rem; font-weight: bold; color: #1e3a8a; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px; text-align: center;">🛒 Annonces Locales</div>
+            <a href="vitrine_clic.php?id=1085&token=4a35e7fe74fbd710f3786fd0eb928551" target="_blank" style="display: flex; flex-direction: column; text-decoration: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; padding: 8px;">
+                <div style="width: 100%; height: 100px; background: #ffffff; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid #e2e8f0;">
+                    <img src="uploads/img_6a8845cbf08f82.15722530.jpg" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                </div>
+                <div style="font-size: 0.75rem; font-weight: bold; color: #1e3a8a; margin-bottom: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">OMOTON Grand clavier rétroéclairé</div>
+                <div style="font-size: 0.75rem; color: #16a34a; font-weight: bold; text-align: center; margin-top: auto;">39,00 $</div>
+            </a>
+            <a href="vitrine_clic.php?id=1084&token=4a35e7fe74fbd710f3786fd0eb928551" target="_blank" style="display: flex; flex-direction: column; text-decoration: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; padding: 8px;">
+                <div style="width: 100%; height: 100px; background: #ffffff; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid #e2e8f0;">
+                    <img src="uploads/img_6a884550b510b0.86455430.jpg" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                </div>
+                <div style="font-size: 0.75rem; font-weight: bold; color: #1e3a8a; margin-bottom: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">HP Chromebook 14-db0030nr 14</div>
+                <div style="font-size: 0.75rem; color: #16a34a; font-weight: bold; text-align: center; margin-top: auto;">328,00 $</div>
+            </a>
+            <a href="vitrine_clic.php?id=1083&token=4a35e7fe74fbd710f3786fd0eb928551" target="_blank" style="display: flex; flex-direction: column; text-decoration: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; padding: 8px;">
+                <div style="width: 100%; height: 100px; background: #ffffff; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid #e2e8f0;">
+                    <img src="uploads/img_6a8844e9b15c10.84962876.jpg" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                </div>
+                <div style="font-size: 0.75rem; font-weight: bold; color: #1e3a8a; margin-bottom: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">HP Chromebook 14 po</div>
+                <div style="font-size: 0.75rem; color: #16a34a; font-weight: bold; text-align: center; margin-top: auto;">315,00 $</div>
+            </a>
+            <a href="vitrine_clic.php?id=1082&token=4a35e7fe74fbd710f3786fd0eb928551" target="_blank" style="display: flex; flex-direction: column; text-decoration: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; padding: 8px;">
+                <div style="width: 100%; height: 100px; background: #ffffff; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid #e2e8f0;">
+                    <img src="uploads/img_6a884493540297.03429807.jpg" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                </div>
+                <div style="font-size: 0.75rem; font-weight: bold; color: #1e3a8a; margin-bottom: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">Phatom Ordinateurs portables</div>
+                <div style="font-size: 0.75rem; color: #16a34a; font-weight: bold; text-align: center; margin-top: auto;">399,00 $</div>
+            </a><div style="text-align: center; margin-top: 4px;"><a href="http://jevend.com" target="_blank" style="font-size: 0.65rem; color: #94a3b8; text-decoration: none;">Propulsé par Jevend</a></div></div>

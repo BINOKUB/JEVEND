@@ -2,8 +2,8 @@
 // =============================================================================
 // SCRIPT      : api_vitrine.php
 // PROJET      : JEVEND | BRANCHE : main
-// REVISION    : 1.2 | AUTEUR : Dan | DATE : 2026-08-27
-// DESC        : Filtrage ville par JOIN (annonces -> utilisateurs -> villes)
+// REVISION    : 1.3 | AUTEUR : Dan | DATE : 2026-08-28
+// DESC        : Correction cadrage d'images vitrines & ajustement CSS flex
 // =============================================================================
 
 header("Access-Control-Allow-Origin: *");
@@ -54,7 +54,6 @@ if (file_exists($cache_file) && (time() - filemtime($cache_file) < 1800)) {
 // --- 3. REQUÊTE SQL AVEC JOINTURE POUR EXTRAIRE LA VILLE ---
 try {
     if (!empty($ville_filtre)) {
-        // Requête filtrée via la ville du membre qui a publié l'annonce
         $stmt = $bdd->prepare("
             SELECT 
                 a.id_annonces, 
@@ -75,7 +74,6 @@ try {
         $stmt->execute();
         $annonces = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fallback : Si 0 annonce trouvée pour cette ville, on charge les plus récentes globales
         if (empty($annonces)) {
             $stmt_fallback = $bdd->prepare("
                 SELECT 
@@ -84,19 +82,18 @@ try {
                     a.prix, 
                     a.image_courante,
                     v.nom_ville
-                FROM jevend_annonces a
-                INNER JOIN jevend_utilisateurs u ON a.id_utilisateur = u.id_utilisateur
-                INNER JOIN jevend_villes v ON u.id_ville = v.id_ville
-                WHERE a.statut = 'actif' 
-                ORDER BY a.date_creation DESC 
-                LIMIT ?
+            FROM jevend_annonces a
+            INNER JOIN jevend_utilisateurs u ON a.id_utilisateur = u.id_utilisateur
+            INNER JOIN jevend_villes v ON u.id_ville = v.id_ville
+            WHERE a.statut = 'actif' 
+            ORDER BY a.date_creation DESC 
+            LIMIT ?
             ");
             $stmt_fallback->bindValue(1, $limit, PDO::PARAM_INT);
             $stmt_fallback->execute();
             $annonces = $stmt_fallback->fetchAll(PDO::FETCH_ASSOC);
         }
     } else {
-        // Requête globale sans filtre de ville
         $stmt = $bdd->prepare("
             SELECT 
                 a.id_annonces, 
@@ -136,7 +133,9 @@ if (empty($annonces)) {
             $prix = !empty($a['prix']) ? number_format($a['prix'], 2, ',', ' ') . ' $' : '';
             
             $html_output .= '<a href="'.$lien.'" target="_blank" style="display: flex; align-items: center; gap: 8px; text-decoration: none; background: #f8fafc; border: 1px solid #e2e8f0; padding: 5px; border-radius: 4px; flex: 1; min-width: 180px;">
-                <img src="'.$img.'" style="width: 45px; height: 45px; object-fit: cover; border-radius: 3px;" onerror="this.style.display=\'none\'">
+                <div style="width: 45px; height: 45px; flex-shrink: 0; background: #ffffff; border-radius: 3px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                    <img src="'.$img.'" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display=\'none\'">
+                </div>
                 <div style="overflow: hidden;">
                     <div style="font-size: 0.78rem; font-weight: bold; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">'.htmlspecialchars($a['titre_objet_nettoye']).'</div>
                     <div style="font-size: 0.72rem; color: #16a34a; font-weight: bold;">'.$prix.'</div>
@@ -153,7 +152,7 @@ if (empty($annonces)) {
         
         $html_output .= '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 6px;">';
         $html_output .= '<span style="font-size: 0.82rem; font-weight: bold; color: #1e3a8a;">🛒 Annonces Locales</span>';
-        $html_output .= '<a href="#" target="_blank" style="font-size: 0.68rem; color: #2563eb; text-decoration: none;">Jevend.com ↗</a>';
+        $html_output .= '<a href="http://jevend.com" target="_blank" style="font-size: 0.68rem; color: #2563eb; text-decoration: none;">Jevend.com ↗</a>';
         $html_output .= '</div>';
 
         $html_output .= '<div style="display: flex; flex-direction: column; gap: 8px;">';
@@ -164,8 +163,8 @@ if (empty($annonces)) {
 
             $html_output .= '
             <a href="'.$lien.'" target="_blank" style="display: flex; gap: 8px; text-decoration: none; background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px; border-radius: 6px; align-items: center;">
-                <div style="width: 45px; height: 45px; flex-shrink: 0; background: #cbd5e1; border-radius: 4px; overflow: hidden;">
-                    <img src="'.$img.'" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display=\'none\'">
+                <div style="width: 45px; height: 45px; flex-shrink: 0; background: #ffffff; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1;">
+                    <img src="'.$img.'" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display=\'none\'">
                 </div>
                 <div style="flex: 1; overflow: hidden;">
                     <div style="font-size: 0.78rem; font-weight: bold; color: #1e3a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;">'.htmlspecialchars($a['titre_objet_nettoye']).'</div>
@@ -176,7 +175,7 @@ if (empty($annonces)) {
         $html_output .= '</div>';
 
         $html_output .= '<div style="text-align: right; margin-top: 8px; border-top: 1px solid #f1f5f9; padding-top: 4px;">';
-        $html_output .= '<a href="#" target="_blank" style="font-size: 0.65rem; color: #94a3b8; text-decoration: none;">Propulsé par Jevend.com</a>';
+        $html_output .= '<a href="http://jevend.com" target="_blank" style="font-size: 0.65rem; color: #94a3b8; text-decoration: none;">Propulsé par Jevend.com</a>';
         $html_output .= '</div>';
 
         $html_output .= '</div>';
@@ -196,11 +195,11 @@ if (empty($annonces)) {
 
             $html_output .= '
             <a href="'.$lien.'" target="_blank" style="display: flex; flex-direction: column; text-decoration: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; padding: 8px;">
-                <div style="width: 100%; height: 90px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
-                    <img src="'.$img.'" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display=\'none\'">
+                <div style="width: 100%; height: 100px; background: #ffffff; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; border: 1px solid #e2e8f0;">
+                    <img src="'.$img.'" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display=\'none\'">
                 </div>
-                <div style="font-size: 0.75rem; font-weight: bold; color: #1e3a8a; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">'.htmlspecialchars($a['titre_objet_nettoye']).'</div>
-                <div style="font-size: 0.75rem; color: #16a34a; font-weight: bold; margin-top: auto;">'.$prix.'</div>
+                <div style="font-size: 0.75rem; font-weight: bold; color: #1e3a8a; margin-bottom: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">'.htmlspecialchars($a['titre_objet_nettoye']).'</div>
+                <div style="font-size: 0.75rem; color: #16a34a; font-weight: bold; text-align: center; margin-top: auto;">'.$prix.'</div>
             </a>';
         }
         $html_output .= '<div style="text-align: center; margin-top: 4px;"><a href="http://jevend.com" target="_blank" style="font-size: 0.65rem; color: #94a3b8; text-decoration: none;">Propulsé par Jevend</a></div>';
@@ -215,7 +214,9 @@ if (empty($annonces)) {
         $prix = !empty($a['prix']) ? number_format($a['prix'], 2, ',', ' ') . ' $' : '';
 
         $html_output .= '<a href="'.$lien.'" target="_blank" style="display: flex; align-items: center; gap: 10px; text-decoration: none; background: #0f172a; color: #ffffff; padding: 5px 10px; border-radius: 4px; width: 100%; max-width: 320px; box-sizing: border-box;">
-            <img src="'.$img.'" style="width: 38px; height: 38px; object-fit: cover; border-radius: 3px;" onerror="this.style.display=\'none\'">
+            <div style="width: 38px; height: 38px; flex-shrink: 0; background: #ffffff; border-radius: 3px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                <img src="'.$img.'" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display=\'none\'">
+            </div>
             <div style="flex: 1; overflow: hidden;">
                 <div style="font-size: 0.75rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">'.htmlspecialchars($a['titre_objet_nettoye']).'</div>
                 <div style="font-size: 0.7rem; color: #00f3ff; font-weight: bold;">'.$prix.'</div>
