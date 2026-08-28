@@ -51,7 +51,7 @@
                         <?php if(!empty($annonce['image_courante']) && file_exists($chemin_complet_image)): ?>
                             <img src="<?= htmlspecialchars($chemin_complet_image) ?>" alt="<?= htmlspecialchars($annonce['titre_objet_nettoye']) ?>">
                         <?php else: ?>
-                            <div style="color: #94a3b8; font-size: 0.8rem; text-align: center; padding: 10px;">📸 Pas de photo</div>
+                            <div style="color: #94a3b8; font-size: 0.8rem; text-align: center; padding: 10px;">📸 JEVEND.COM</div>
                         <?php endif; ?>
                     </div>
                     

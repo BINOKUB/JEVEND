@@ -1,29 +1,23 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : admin_modules/_admin_sponsorise.php
-// REVISION : 1.1 - Gestion unifiée des clients et contrats publicitaires
+// REVISION : 1.2 - Vérification dynamique de l'expiration des publicités
 // =============================================================================
 
 $message_admin = "";
 $type_message = "";
 
-
-
 // =============================================================================
-// AJOUT DE LA FONCTION INTELLIGENTE (À mettre tout en haut)
+// FONCTION INTELLIGENTE BASE URL
 // =============================================================================
 function getBaseUrl() {
     $protocole = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
     $hote = $_SERVER['HTTP_HOST'];
-    // Calcule la racine proprement, même si on est dans un sous-dossier
     $dossier_script = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
     $dossier_racine = str_replace('/admin_modules', '', $dossier_script);
     $dossier_racine = rtrim($dossier_racine, '/');
     return $protocole . $hote . $dossier_racine;
 }
-// =============================================================================
-
-
 
 // 1. TRAITEMENT DU FORMULAIRE (AJOUT DE PUB ET/OU DE CLIENT)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_ajouter_sponsor'])) {
@@ -41,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_ajouter_sponso
         try {
             $bdd->beginTransaction();
 
-            // Gestion du client : soit on prend un existant, soit on en crée un nouveau
             if ($choix_client === 'nouveau') {
                 $nom_prenom = trim($_POST['nouveau_nom'] ?? '');
                 $site_web   = trim($_POST['nouveau_site'] ?? '');
@@ -65,18 +58,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_ajouter_sponso
                 }
             }
 
-            // Calcul du montant (35$ par semaine fixe)
             $tarif_semaine = 35.00;
             $montant_total = $nb_semaines * $tarif_semaine;
 
-            // Dates de début et de fin
             $date_debut = date('Y-m-d H:i:s');
             $date_fin   = date('Y-m-d H:i:s', strtotime("+$nb_semaines weeks"));
 
-            // Token unique sécurisé pour la page client
             $token_paiement = bin2hex(random_bytes(16));
 
-            // Insertion du bandeau
             $stmt_bandeau = $bdd->prepare("
                 INSERT INTO jevend_bandeau_sponsorise 
                 (id_client, message, url_redirection, fond_couleur, couleur_police, montant_paye, date_debut, date_fin, token_paiement, statut)
@@ -124,14 +113,11 @@ if (isset($_GET['action_supprimer']) && (int)$_GET['action_supprimer'] > 0) {
 $stmt_c_list = $bdd->query("SELECT * FROM jevend_sponsorise_client ORDER BY nom_prenom ASC");
 $tous_les_clients = $stmt_c_list->fetchAll(PDO::FETCH_ASSOC);
 
-
-// recuperation des prix
-
-// Récupérer les prix actifs pour le menu déroulant du formulaire
+// Récupérer les prix actifs pour le menu déroulant
 $stmt_forfaits = $bdd->query("SELECT * FROM jevend_bandeau_sponsorise_prix WHERE actif = 1 ORDER BY id_prix ASC");
 $les_forfaits = $stmt_forfaits->fetchAll(PDO::FETCH_ASSOC);
 
-// Récupération de la liste des bandeaux avec leurs clients
+// Récupération de la liste des bandeaux
 $stmt_liste = $bdd->query("
     SELECT b.*, c.nom_prenom, c.cel, c.site_web 
     FROM jevend_bandeau_sponsorise b
@@ -160,7 +146,6 @@ $liste_sponsors = $stmt_liste->fetchAll(PDO::FETCH_ASSOC);
         <form action="" method="POST">
             <input type="hidden" name="action_ajouter_sponsor" value="1">
 
-            <!-- SÉLECTION OU CRÉATION DU CLIENT -->
             <div style="margin-bottom: 15px;">
                 <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #334155;">Client / Annonceur : *</label>
                 <select name="choix_client" id="choix_client" onchange="toggleNouveauClient(this.value);" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff;">
@@ -171,7 +156,6 @@ $liste_sponsors = $stmt_liste->fetchAll(PDO::FETCH_ASSOC);
                 </select>
             </div>
 
-            <!-- BLOC CHAMPS DU NOUVEAU CLIENT (Affiché dynamiquement si "nouveau" est sélectionné) -->
             <div id="bloc_nouveau_client" style="background: #f1f5f9; padding: 15px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 15px;">
                 <h5 style="margin: 0 0 10px 0; color: #0f172a; font-size: 0.9rem;">📝 Coordonnées du nouveau client</h5>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
@@ -196,18 +180,17 @@ $liste_sponsors = $stmt_liste->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
 
-            <!-- PARAMÈTRES DU CONTRAT ET DU MESSAGE -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div>
                     <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #334155;">Durée de diffusion :</label>
                     <select name="nb_semaines" style="width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff;">
-    <?php foreach ($les_forfaits as $index => $forfait): ?>
-        <?php $semaines = $index + 1; // 1, 2, 3 ou 4 semaines ?>
-        <option value="<?= $semaines ?>">
-            <?= htmlspecialchars($forfait['libelle_forfait']) ?> (<?= number_format((float)$forfait['montant'], 2, ',', ' ') ?> $)
-        </option>
-    <?php endforeach; ?>
-                </select>
+                        <?php foreach ($les_forfaits as $index => $forfait): ?>
+                            <?php $semaines = $index + 1; ?>
+                            <option value="<?= $semaines ?>">
+                                <?= htmlspecialchars($forfait['libelle_forfait']) ?> (<?= number_format((float)$forfait['montant'], 2, ',', ' ') ?> $)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div>
                     <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #334155;">Lien de redirection du clic (Optionnel) :</label>
@@ -265,8 +248,13 @@ $liste_sponsors = $stmt_liste->fetchAll(PDO::FETCH_ASSOC);
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($liste_sponsors as $s): ?>
-                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <?php 
+                    $maintenant = date('Y-m-d H:i:s');
+                    foreach ($liste_sponsors as $s): 
+                        // Calcul dynamique de l'expiration
+                        $est_echu = ($s['date_fin'] < $maintenant);
+                    ?>
+                        <tr style="border-bottom: 1px solid #e2e8f0; <?= $est_echu ? 'background: #fafafa;' : '' ?>">
                             <td style="padding: 10px; font-weight: bold; color: #0f172a;">
                                 <?= htmlspecialchars($s['nom_prenom']) ?><br>
                                 <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;"><?= htmlspecialchars($s['cel'] ?? '') ?></span>
@@ -282,7 +270,9 @@ $liste_sponsors = $stmt_liste->fetchAll(PDO::FETCH_ASSOC);
                                 Du <?= date('d/m/Y', strtotime($s['date_debut'])) ?><br>au <?= date('d/m/Y', strtotime($s['date_fin'])) ?>
                             </td>
                             <td style="padding: 10px;">
-                                <?php if ($s['statut'] === 'actif'): ?>
+                                <?php if ($est_echu): ?>
+                                    <span style="background: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; border: 1px solid #cbd5e1;">Inactif (Échu)</span>
+                                <?php elseif ($s['statut'] === 'actif'): ?>
                                     <span style="background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">Actif</span>
                                 <?php elseif ($s['statut'] === 'en_attente_paiement'): ?>
                                     <span style="background: #fef9c3; color: #854d0e; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">En attente de paiement</span>
@@ -292,13 +282,12 @@ $liste_sponsors = $stmt_liste->fetchAll(PDO::FETCH_ASSOC);
                             </td>
                             <td style="padding: 10px; text-align: center;">
                                <?php if (!empty($s['token_paiement'])): 
-        // Appel de la fonction intelligente ici !
-        $url_client = getBaseUrl() . '/facture_pub.php?token=' . $s['token_paiement'];
-    ?>
-        <div style="margin-bottom: 6px;">
-            <input type="text" readonly value="<?= $url_client ?>" onclick="this.select();" title="Cliquer pour copier le lien client" style="font-size: 0.72rem; padding: 4px; width: 100%; border: 1px dashed #94a3b8; border-radius: 4px; background: #f8fafc; cursor: pointer; text-align: center;">
-        </div>
-    <?php endif; ?>
+                                    $url_client = getBaseUrl() . '/facture_pub.php?token=' . $s['token_paiement'];
+                                ?>
+                                    <div style="margin-bottom: 6px;">
+                                        <input type="text" readonly value="<?= $url_client ?>" onclick="this.select();" title="Cliquer pour copier le lien client" style="font-size: 0.72rem; padding: 4px; width: 100%; border: 1px dashed #94a3b8; border-radius: 4px; background: #f8fafc; cursor: pointer; text-align: center;">
+                                    </div>
+                                <?php endif; ?>
                                 <a href="?action_supprimer=<?= $s['id_bandeau'] ?>" onclick="return confirm('Voulez-vous vraiment supprimer définitivement cette publicité ?');" style="color: #dc2626; text-decoration: none; font-size: 0.8rem; font-weight: bold;">
                                     🗑️ Supprimer
                                 </a>
@@ -312,7 +301,6 @@ $liste_sponsors = $stmt_liste->fetchAll(PDO::FETCH_ASSOC);
 
 </div>
 
-<!-- PETIT SCRIPT JAVASCRIPT POUR MASQUER/AFFICHER LE BLOC NOUVEAU CLIENT -->
 <script>
 function toggleNouveauClient(valeur) {
     const blocNouveau = document.getElementById('bloc_nouveau_client');

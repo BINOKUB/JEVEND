@@ -1,43 +1,44 @@
 <?php
 // =============================================================================
 // MODULE : _admin_compta.php
-// REVISION : 1.0 - Compilation financière et bilans des revenus Stripe
+// REVISION : 1.1 - Correction de la table cible (Lecture de jevend_preuve_dachat)
 // NOM DU SCRIPT : admin_modules/_admin_compta.php
 // =============================================================================
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') { exit(); }
 
 // Définition des périodes temporelles basées sur l'heure locale de Matane
-$aujourdhui = date('Y-m-d');
-$ce_mois = date('Y-m');
+$aujourdhui  = date('Y-m-d');
+$ce_mois     = date('Y-m');
 $cette_annee = date('Y');
 
-$revenu_jour = 0.00;
-$revenu_mois = 0.00;
+$revenu_jour  = 0.00;
+$revenu_mois  = 0.00;
 $revenu_annee = 0.00;
 $transactions = [];
 
 try {
     // 1. CALCUL DU CHIFFRE D'AFFAIRES - AUJOURD'HUI
-    $stmt_jour = $bdd->prepare("SELECT SUM(montant_paye) FROM jevend_achats_publicites WHERE DATE(date_achat) = ?");
+    $stmt_jour = $bdd->prepare("SELECT SUM(prix_paye) FROM jevend_preuve_dachat WHERE DATE(date_achat) = ? AND statut_paiement = 'Payé'");
     $stmt_jour->execute([$aujourdhui]);
     $revenu_jour = (float)($stmt_jour->fetchColumn() ?? 0.00);
 
     // 2. CALCUL DU CHIFFRE D'AFFAIRES - CE MOIS-CI
-    $stmt_mois = $bdd->prepare("SELECT SUM(montant_paye) FROM jevend_achats_publicites WHERE DATE_FORMAT(date_achat, '%Y-%m') = ?");
+    $stmt_mois = $bdd->prepare("SELECT SUM(prix_paye) FROM jevend_preuve_dachat WHERE DATE_FORMAT(date_achat, '%Y-%m') = ? AND statut_paiement = 'Payé'");
     $stmt_mois->execute([$ce_mois]);
     $revenu_mois = (float)($stmt_mois->fetchColumn() ?? 0.00);
 
     // 3. CALCUL DU CHIFFRE D'AFFAIRES - CETTE ANNÉE
-    $stmt_annee = $bdd->prepare("SELECT SUM(montant_paye) FROM jevend_achats_publicites WHERE DATE_FORMAT(date_achat, '%Y') = ?");
+    $stmt_annee = $bdd->prepare("SELECT SUM(prix_paye) FROM jevend_preuve_dachat WHERE DATE_FORMAT(date_achat, '%Y') = ? AND statut_paiement = 'Payé'");
     $stmt_annee->execute([$cette_annee]);
     $revenu_annee = (float)($stmt_annee->fetchColumn() ?? 0.00);
 
     // 4. RÉCUPÉRATION DES 10 DERNIÈRES TRANSACTIONS AVEC COORDONNÉES MEMBRES
     $sql_trans = "
-        SELECT a.id_achat, a.type_produit, a.montant_paye, a.duree_jours, a.date_achat, a.stripe_checkout_id, u.nom, u.courriel
-        FROM jevend_achats_publicites a
-        INNER JOIN jevend_utilisateurs u ON a.id_utilisateur = u.id_utilisateur
-        ORDER BY a.date_achat DESC
+        SELECT p.id_preuve, p.type_banniere, p.prix_paye, p.duree_mois, p.date_achat, p.no_transaction, p.description_achat, u.nom, u.courriel
+        FROM jevend_preuve_dachat p
+        INNER JOIN jevend_utilisateurs u ON p.id_utilisateur = u.id_utilisateur
+        WHERE p.statut_paiement = 'Payé'
+        ORDER BY p.date_achat DESC
         LIMIT 10
     ";
     $transactions = $bdd->query($sql_trans)->fetchAll(PDO::FETCH_ASSOC);
@@ -116,8 +117,8 @@ try {
                     <th>Date / Heure</th>
                     <th>Acheteur</th>
                     <th>Forfait</th>
-                    <th>Durée</th>
-                    <th>Réf. Stripe</th>
+                    <th>Description</th>
+                    <th>N° Transaction</th>
                     <th style="text-align: right;">Montant</th>
                 </tr>
             </thead>
@@ -130,11 +131,13 @@ try {
                             <span style="font-size: 0.75rem; color: #64748b;"><?= htmlspecialchars($t['courriel']) ?></span>
                         </td>
                         <td data-label="Forfait">
-                            <span class="badge-prod prod-<?= $t['type_produit'] ?>"><?= htmlspecialchars($t['type_produit']) ?></span>
+                            <span class="badge-prod prod-<?= htmlspecialchars($t['type_banniere']) ?>"><?= htmlspecialchars($t['type_banniere']) ?></span>
                         </td>
-                        <td data-label="Durée"><?= $t['duree_jours'] ?> jours</td>
-                        <td data-label="Réf. Stripe"><code style="background: #f1f5f9; padding: 2px 5px; border-radius: 3px; font-size: 0.8rem;"><?= htmlspecialchars(substr($t['stripe_checkout_id'], 0, 18)) ?>...</code></td>
-                        <td data-label="Montant" style="text-align: right; font-weight: bold; color: #15803d; font-size: 0.95rem;"><?= number_format($t['montant_paye'], 2, ',', ' ') ?> $</td>
+                        <td data-label="Description" style="font-size: 0.82rem; max-width: 200px;">
+                            <?= htmlspecialchars($t['description_achat']) ?>
+                        </td>
+                        <td data-label="N° Trans."><code style="background: #f1f5f9; padding: 2px 5px; border-radius: 3px; font-size: 0.8rem;"><?= htmlspecialchars($t['no_transaction']) ?></code></td>
+                        <td data-label="Montant" style="text-align: right; font-weight: bold; color: #15803d; font-size: 0.95rem;"><?= number_format($t['prix_paye'], 2, ',', ' ') ?> $</td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
