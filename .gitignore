@@ -2,3 +2,5 @@
 uploads/*
 !uploads/.gitkeep
 !uploads/bannieres/.gitkeep
+test*.php
+TEST*.PHP
