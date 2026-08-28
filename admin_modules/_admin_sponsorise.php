@@ -296,9 +296,9 @@ $liste_sponsors = $stmt_liste->fetchAll(PDO::FETCH_ASSOC);
                     <?php endforeach; ?>
                 </tbody>
             </table>
+
         </div>
     <?php endif; ?>
-
 </div>
 
 <script>

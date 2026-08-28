@@ -234,8 +234,17 @@ try {
                         </textarea>
                     </div>
                 </div>
+
+
+
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
+
+<?php
+include_once 'admin_modules/_admin_partenaires.php';
+?>
+</div
+
 
 </div>
