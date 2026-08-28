@@ -1,2 +1,4 @@
-uploads/bannieres/*
+# Ignorer TOUTES les images téléversées dans le dossier uploads
+uploads/*
+!uploads/.gitkeep
 !uploads/bannieres/.gitkeep
