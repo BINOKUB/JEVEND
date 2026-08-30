@@ -66,9 +66,10 @@ try {
     $bannieres_supremes = (int)$stmt_sup->fetchColumn();
 } catch (PDOException $e) { }
 
-// CALCUL DU RATIO DES BANNIÈRES RÉGULIÈRES
+//  ********************************C ALCUL DU RATIO DES BANNIÈRES RÉGULIÈRES - CHANGEMENT DE % DES BANNIERE SUR LES ANNONCES BANN A TOUTES LES 8 ANNONCES 
 $pourcentage_regulieres = ($total_annonces > 0) ? round(($bannieres_regulieres / $total_annonces) * 100, 1) : 0;
-$alerte_50_pourcent = ($pourcentage_regulieres > 50);
+$alerte_seuil_critique = ($pourcentage_regulieres > 15);
+
 
 // RÉCUPÉRATION DES LIMITES ACTUELLES DEPUIS LA BASE
 $limite_annonces_actuelle = 2000;
@@ -134,26 +135,26 @@ $pourcentage_remplissage_recherches = ($limite_recherches_actuelle > 0) ? min(10
 
     </div>
 
-    <!-- SECTION CONTRÔLE DES 50% -->
-    <div style="background: <?= $alerte_50_pourcent ? '#fef2f2' : '#f0fdf4' ?>; border: 1px solid <?= $alerte_50_pourcent ? '#fecaca' : '#bbf7d0' ?>; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+    <!-- SECTION CONTRÔLE DES 15% -->
+    <div style="background: <?= $alerte_seuil_critique ? '#fef2f2' : '#f0fdf4' ?>; border: 1px solid <?= $alerte_seuil_critique ? '#fecaca' : '#bbf7d0' ?>; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin: 0; color: <?= $alerte_50_pourcent ? '#991b1b' : '#166534' ?>; font-size: 1.1rem;">
+            <h3 style="margin: 0; color: <?= $alerte_seuil_critique ? '#991b1b' : '#166534' ?>; font-size: 1.1rem;">
                 📊 Analyse du Seuil Publicitaire (Bannières Régulières vs Total)
             </h3>
-            <span style="font-weight: 900; font-size: 1.2rem; color: <?= $alerte_50_pourcent ? '#991b1b' : '#166534' ?>;">
+            <span style="font-weight: 900; font-size: 1.2rem; color: <?= $alerte_seuil_critique ? '#991b1b' : '#166534' ?>;">
                 <?= $pourcentage_regulieres ?> %
             </span>
         </div>
         <p style="margin: 0 0 12px 0; font-size: 0.9rem; color: #334155;">
-            Le ratio cible est de maintenir les bannières régulières <strong>en dessous de 50 %</strong> du volume total des annonces.
+            Le ratio cible est de maintenir les bannières régulières <strong>en dessous de 15 %</strong> du volume total des annonces (1 bannière / 8 annonces).
         </p>
         
         <div style="background: #e2e8f0; border-radius: 10px; height: 14px; overflow: hidden; width: 100%;">
-            <div style="background: <?= $alerte_50_pourcent ? '#dc2626' : '#16a34a' ?>; width: min(100%, <?= $pourcentage_regulieres ?>%); height: 100%;"></div>
+            <div style="background: <?= $alerte_seuil_critique ? '#dc2626' : '#16a34a' ?>; width: min(100%, <?= $pourcentage_regulieres ?>%); height: 100%;"></div>
         </div>
-        <?php if ($alerte_50_pourcent): ?>
+        <?php if ($alerte_seuil_critique): ?>
             <div style="margin-top: 10px; font-size: 0.85rem; color: #991b1b; font-weight: bold;">
-                ⚠️ Attention : Le seuil critique de 50 % est dépassé.
+                ⚠️ Attention : Le seuil critique de 15 % est dépassé.
             </div>
         <?php else: ?>
             <div style="margin-top: 10px; font-size: 0.85rem; color: #166534; font-weight: bold;">

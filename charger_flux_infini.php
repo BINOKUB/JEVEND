@@ -165,7 +165,7 @@ foreach ($flux_annonces as $annonce):
     </div>
 
     <?php 
-    if ($compteur_position % 4 === 0): 
+    if ($compteur_position % 8 === 0): 
         $bannieres_deja_vues = $_SESSION['bannieres_affichees_session'] ?? [];
 
         $sql_pub_scroll = "

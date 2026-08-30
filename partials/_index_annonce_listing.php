@@ -114,7 +114,7 @@
                 </div>
 
                 <?php 
-                if ($compteur_position % 4 === 0 && $index_banniere < $total_bannieres_flux): 
+                if ($compteur_position % 8 === 0 && $index_banniere < $total_bannieres_flux): 
                     $banniere = $bannieres_flux[$index_banniere]; 
                     $index_banniere++;
                     

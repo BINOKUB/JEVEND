@@ -12,7 +12,7 @@ require_once 'chat_delete_membre.php';
 include_once 'partials/_check_ann_reguliere.php';
 require_once 'fonctions_geoloc.php';
 require_once 'partials/_jevend_stat.php';
-// INCLUSION DU MODULE DE PURGE AUTOMATIQUE
+//INCLUSION DU MODULE DE PURGE AUTOMATIQUE
 include 'partials/_delete_je_cherche.php';
 
 $_SESSION['bannieres_affichees_session'] = [];

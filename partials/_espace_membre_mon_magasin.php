@@ -24,7 +24,10 @@
                 <button onclick="sauvegarderDescriptionBoutique()" class="btn-action" style="margin: 0; padding: 8px 16px; width: auto; font-size: 0.85rem;">💾 Enregistrer la présentation</button>
             </div>
         </div>
+
     </div>
+<div class="zone-campagnes-pub">ICI LE MESSAGE EN ROUGE ... </div>
+
 
     <div class="zone-campagnes-pub">
         <h3 style="margin-top:0; display:flex; align-items:center; gap:8px; color:#1e3a8a;"><span style="color:#10b981;">🟢</span> Vos campagnes publicitaires en direct</h3>
