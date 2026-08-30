@@ -26,7 +26,7 @@
         </div>
 
     </div>
-<div class="zone-campagnes-pub">ICI LE MESSAGE EN ROUGE ... </div>
+<div class="zone-campagnes-pub">ICI LE MESSAGE SI LES BANN SONT >15% ... </div>
 
 
     <div class="zone-campagnes-pub">
