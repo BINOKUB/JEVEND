@@ -153,6 +153,11 @@ require_once 'config.php';
     <?php if (file_exists('admin_modules/_vitrine_admin.php')) include 'admin_modules/_vitrine_admin.php'; ?>
 </div>
 
+        <!-- MODULE CHAT LIVE -->
+<div id="onglet-chat-live" class="section-panneau">
+    <?php if (file_exists('admin_modules/_chat_live.php')) include 'admin_modules/_chat_live.php'; ?>
+</div>
+
 
     </div>
 

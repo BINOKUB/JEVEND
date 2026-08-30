@@ -81,5 +81,6 @@ Description   : Barre de navigation modulaire pour le panneau d'administration
     <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-fraude')" style="grid-column: span 1; background-color: #fef2f2; border-color: #fecaca; color: #991b1b;">🚨 Fraude & Signalements</button>
 <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-fraude-chat')" style="background-color: #fef2f2; border-color: #fecaca; color: #991b1b;">💬 Fraude & Chat</button>
 <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-vitrine')" style="background-color: #f0fdf4; border-color: #bbf7d0; color: #166534;">🌐 Vitrine du Village</button>
+<button type="button" class="onglet-btn" onclick="changerOnglet('onglet-chat-live')">💬 Chat Live</button>
 
 </div>
