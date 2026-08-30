@@ -162,7 +162,7 @@ function mettreAJourDureesDymaniques() {
         }
 
         // 3. Inclure 10 si les jours restants >= 11
-        if (joursRestants >= 11 && !paliers.includes(10)) {
+        if (joursRestants >= 10 && !paliers.includes(10)) {
             paliers.push(10);
         }
 

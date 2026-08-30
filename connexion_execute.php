@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : connexion_execute.php
-// REVISION     : 1.1 - Correction des variables de template courriel ($code_securite & $nom_affiche)
+// REVISION     : 1.3 - Vue HTML isolée (_code_mail_visuel.php) + Switch PHPmail / SMTP
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -52,72 +52,59 @@ if ($action === 'demande_code') {
 
                 $_SESSION['temp_email_connexion'] = $courriel;
                 $_SESSION['dernier_envoi_code'] = time();
-                $_SESSION['essais_code_connexion'] = 0; // Réinitialisation du compteur d'essais
+                $_SESSION['essais_code_connexion'] = 0;
 
                 // Console Log pour environnement de dev/test
                 echo "<script>console.log('%c[TEST JETON] Courriel: " . addslashes($courriel) . " | CODE SECRET: " . $code_securite . "', 'background: #16a34a; color: #ffffff; font-size: 14px; padding: 8px; font-weight: bold; border-radius: 4px;');</script>";
 
-                $headers  = "MIME-Version: 1.0\r\n";
-                $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-                $headers .= "From: jevend.com <no-reply@jevend.com>\r\n";
-                $headers .= "Reply-To: no-reply@jevend.com\r\n";
-                $headers .= "X-Mailer: PHP/" . phpversion();
-
-                $sujet = "Votre code de connexion unique - jevend.com";
+                // -------------------------------------------------------------
+                // CHARGEMENT DU VISUEL SEPARÉ (_code_mail_visuel.php)
+                // -------------------------------------------------------------
                 $nom_affiche = htmlspecialchars($user['nom'] ?? 'Membre');
+                $sujet = "Votre code de connexion unique - jevend.com";
 
-                $message = "
-<!DOCTYPE html>
-<html lang='fr'>
-<head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-</head>
-<body style='margin: 0; padding: 0; background-color: #f1f5f9; font-family: Arial, sans-serif;'>
-    <table width='100%' border='0' cellspacing='0' cellpadding='0' style='background-color: #f1f5f9; padding: 40px 10px;'>
-        <tr>
-            <td align='center'>
-                <table width='100%' style='max-width: 550px; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0;' border='0' cellspacing='0' cellpadding='0'>
-                    <!-- EN-TÊTE SANS IMAGE BRISÉE -->
-                    <tr>
-                        <td align='center' style='background-color: #0f172a; padding: 25px;'>
-                            <h1 style='margin: 0; color: #ffffff; font-size: 1.8rem; font-style: italic; letter-spacing: -1px;'>jevend.com</h1>
-                        </td>
-                    </tr>
-                    <!-- CORPS DU MESSAGE -->
-                    <tr>
-                        <td style='padding: 40px 30px; color: #334155; text-align: center;'>
-                            <h2 style='margin: 0 0 15px 0; font-size: 1.4rem; color: #0f172a;'>
-                                Bonjour " . $nom_affiche . " !
-                            </h2>
-                            <p style='margin: 0 0 25px 0; font-size: 0.95rem; color: #475569;'>
-                                Voici votre code unique pour accéder à votre espace :
-                            </p>
-                            <!-- PAVE CODE SECRET MODERNE -->
-                            <div style='text-align: center; margin-bottom: 25px;'>
-                                <div style='background-color: #2563eb; color: #ffffff; font-size: 2.2rem; font-weight: bold; letter-spacing: 8px; padding: 15px 25px; display: inline-block; border-radius: 8px; font-family: Arial, sans-serif; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);'>
-                                    " . $code_securite . "
-                                </div>
-                            </div>
-                            <p style='margin: 0; font-size: 0.8rem; color: #94a3b8;'>
-                                Ce code secret est valide pendant 15 minutes.
-                            </p>
-                        </td>
-                    </tr>
-                    <!-- PIED DE PAGE -->
-                    <tr>
-                        <td align='center' style='background-color: #f8fafc; padding: 15px; border-top: 1px solid #e2e8f0; font-size: 0.75rem; color: #94a3b8;'>
-                            « Premier arrivé, premier vendu » — jevend.com
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>";
+                ob_start();
+                include 'partials/_code_mail_visuel.php';
+                $message = ob_get_clean();
 
-                @mail($courriel, $sujet, $message, $headers);
+                // -------------------------------------------------------------
+                // BASCULEMENT D'ENVOI : PHP MAIL vs SMTP
+                // -------------------------------------------------------------
+                $mode_envoi = 'PHP_MAIL'; // Changer en 'SMTP' le jour venu
+
+                if ($mode_envoi === 'PHP_MAIL') {
+                    
+                    // Option 1 : Envoi natif PHP mail()
+                    $headers  = "MIME-Version: 1.0\r\n";
+                    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+                    $headers .= "From: jevend.com <no-reply@jevend.com>\r\n";
+                    $headers .= "Reply-To: no-reply@jevend.com\r\n";
+                    $headers .= "X-Mailer: PHP/" . phpversion();
+
+                    @mail($courriel, $sujet, $message, $headers);
+
+                } elseif ($mode_envoi === 'SMTP') {
+
+                    // Option 2 : Emplacement prêt pour PHPMailer / SMTP
+                    /*
+                    require_once 'vendor/autoload.php';
+                    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+                    $mail->isSMTP();
+                    $mail->Host       = 'mail.jevend.com'; // À remplir avec l'hôte de ton hébergeur
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = 'no-reply@jevend.com';
+                    $mail->Password   = 'VOTRE_MOT_DE_PASSE_SMTP';
+                    $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = 587;
+                    $mail->setFrom('no-reply@jevend.com', 'jevend.com');
+                    $mail->addAddress($courriel, $nom_affiche);
+                    $mail->isHTML(true);
+                    $mail->CharSet    = 'UTF-8';
+                    $mail->Subject    = $sujet;
+                    $mail->Body       = $message;
+                    $mail->send();
+                    */
+                }
 
                 $_SESSION['succes_connexion'] = "Un code secret d'accès unique a été généré. Consultez votre boîte de réception.";
             }
@@ -152,7 +139,7 @@ if ($action === 'valider_code') {
         exit();
     }
 
-    // Gestion de la protection Anti-Brute Force (5 essais maximum)
+    // Protection Anti-Brute Force (5 essais maximum)
     $_SESSION['essais_code_connexion'] = ($_SESSION['essais_code_connexion'] ?? 0) + 1;
     if ($_SESSION['essais_code_connexion'] > 5) {
         $clear = $bdd->prepare("UPDATE jevend_utilisateurs SET jeton_connexion = NULL, jeton_expiration = NULL WHERE courriel = ?");
@@ -196,13 +183,29 @@ if ($action === 'valider_code') {
                     $stmt_stat->execute([$user['id_utilisateur'], $type_appareil, $date_actuelle]);
                 } catch (PDOException $e_stat) { }
 
-                // Nettoyage du jeton utilisé
-                $clear = $bdd->prepare("UPDATE jevend_utilisateurs SET jeton_connexion = NULL, jeton_expiration = NULL WHERE id_utilisateur = ?");
-                $clear->execute([$user['id_utilisateur']]);
+                // GENERATION DU JETON LONGUE DURÉE (60 JOURS)
+                $token_60_jours = bin2hex(random_bytes(32));
+                $expiration_60_jours = date('Y-m-d H:i:s', strtotime('+60 days'));
+
+                $update_token = $bdd->prepare("UPDATE jevend_utilisateurs SET jeton_connexion = ?, jeton_expiration = ? WHERE id_utilisateur = ?");
+                $update_token->execute([$token_60_jours, $expiration_60_jours, $user['id_utilisateur']]);
+
+                // Cookie 60 jours
+                $duree_cookie = time() + (60 * 24 * 60 * 60);
+                setcookie(
+                    'jevend_remember',
+                    $token_60_jours,
+                    [
+                        'expires'  => $duree_cookie,
+                        'path'     => '/',
+                        'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+                        'httponly' => true,
+                        'samesite' => 'Lax'
+                    ]
+                );
 
                 unset($_SESSION['temp_email_connexion'], $_SESSION['essais_code_connexion']);
 
-                // SECURISATION SESSION : Régénération de l'ID pour prévenir la fixation de session
                 session_regenerate_id(true);
 
                 // ENREGISTREMENT DE LA SESSION MEMBRE
@@ -239,6 +242,6 @@ if ($action === 'valider_code') {
     exit();
 }
 
-// Sécurité : redirection par défaut si accès direct à connexion_execute.php
+// Sécurité par défaut
 header("Location: connexion.php");
 exit();

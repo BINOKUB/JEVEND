@@ -26,7 +26,30 @@
         </div>
 
     </div>
-<div class="zone-campagnes-pub">ICI LE MESSAGE SI LES BANN SONT >15% ... </div>
+
+<div><!-- LIGNE 25 EN REMPLACEMENT DE : <div class="zone-campagnes-pub">ICI LE MESSAGE SI LES BANN SONT >15% ... </div> -->
+<?php
+$bannieres_bloquees_ratio = false;
+try {
+    $total_ann_actives = (int)$bdd->query("SELECT COUNT(*) FROM jevend_annonces WHERE statut = 'actif'")->fetchColumn();
+    $total_bann_actives = (int)$bdd->query("SELECT COUNT(*) FROM jevend_bannieres_actives WHERE statut_affichage = 'active'")->fetchColumn();
+    $ratio_reseau = ($total_ann_actives > 0) ? ($total_bann_actives / $total_ann_actives) * 100 : 0;
+    
+    if ($ratio_reseau >= 15.0) {
+        $bannieres_bloquees_ratio = true;
+    }
+} catch (PDOException $e) { }
+?>
+
+<?php if ($bannieres_bloquees_ratio): ?>
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; font-size: 0.9rem; line-height: 1.5; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+        <span style="font-size: 1.6rem;">⌛</span>
+        <div>
+            <strong>Emplacements publicitaires temporairement au complet :</strong><br>
+            Afin d'assurer un impact maximal et un taux d'exposition élevé à chaque annonceur, nous limitons les bannières en circulation à 15 % du volume global. De nouveaux emplacements ouvriront dès la parution de nouvelles annonces sur la plateforme.
+        </div>
+    </div>
+<?php endif; ?> </div>
 
 
     <div class="zone-campagnes-pub">

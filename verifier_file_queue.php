@@ -1,8 +1,7 @@
 <?php
 // =============================================================================
 // SCRIPT : verifier_file_queue.php
-// REVISION : 2.3 - Correction strictement validée selon DESCRIBE jevend_bannieres_actives
-// NOM DU SCRIPT : verifier_file_queue.php
+// REVISION : 2.4 - Alignement du quota publicitaire sur le seuil de 15 %
 // =============================================================================
 session_start();
 header('Content-Type: application/json');
@@ -23,19 +22,22 @@ try {
     $stmt = $bdd->query("SELECT COUNT(*) FROM jevend_bannieres_actives_pro WHERE type_banniere = 'premium' AND statut_affichage = 'active' AND date_fin >= NOW()");
     $premium_libre = ((int)$stmt->fetchColumn() < 4);
 
-    // 3. Statut Flux / Régulière (Table RÉGULIÈRE : jevend_bannieres_actives)
+    // 3. Statut Flux / Régulière (Seuil strict de 15 % du total des annonces actives)
     $stmt_annonces = $bdd->query("SELECT COUNT(*) FROM jevend_annonces WHERE statut = 'actif'");
     $total_annonces = (int)$stmt_annonces->fetchColumn();
-    $quota_max = ceil($total_annonces * 0.50);
+    $quota_max = ceil($total_annonces * 0.15);
 
-    // Calcul direct via date_debut_activation + duree_jours
+    // Calcul direct des bannières régulières actives
     $sql_flux = "SELECT COUNT(*) FROM jevend_bannieres_actives 
                  WHERE statut_affichage = 'active' 
                    AND type_banniere = 'reguliere'
                    AND DATE_ADD(date_debut_activation, INTERVAL duree_jours DAY) >= NOW()";
     
     $stmt_flux = $bdd->query($sql_flux);
-    $flux_libre = ((int)$stmt_flux->fetchColumn() < $quota_max);
+    $total_bannieres_actives = (int)$stmt_flux->fetchColumn();
+
+    // Verrouillage si le nombre de bannières atteint ou dépasse le quota de 15 %
+    $flux_libre = ($total_bannieres_actives < $quota_max);
 
     echo json_encode([
         'statut' => 'succes',
