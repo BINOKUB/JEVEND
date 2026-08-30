@@ -47,9 +47,7 @@
 
                             <!-- ENCADRÉ D'INFORMATION SESSION LONGUE (60 JOURS) -->
                             <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 15px; margin-top: 20px; text-align: left;">
-                                <p style="margin: 0; font-size: 0.85rem; color: #166534; line-height: 1.5;">
-                                    💡 <strong>Bon à savoir :</strong> Une fois connecté, vous resterez automatiquement identifié sur cet appareil pendant <strong>60 jours</strong> sans avoir à demander de nouveau code (sauf si vous choisissez de vous déconnecter manuellement).
-                                </p>
+                    <p style="margin: 0; font-size: 0.85rem; color: #166534; line-height: 1.5;"> 💡 <strong>Connexion simplifiée :</strong> Vous resterez automatiquement connecté sur cet appareil tant que vous visitez le site régulièremment (sans inactivité de plus de 60 jours).</p>
                             </div>
                         </td>
                     </tr>
