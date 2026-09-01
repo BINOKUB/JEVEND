@@ -7,7 +7,8 @@ error_reporting(E_ALL);
 
 // =============================================================================
 // NOM DU SCRIPT : creer_annonce.php
-// REVISION : 2.5 - Séparation de la logique de traitement dans creer_annonce_traitement.php
+// REVISION     : 2.6 - Validation active de la session BDD
+// SCRIPT COMPLET ET SUIVI
 // =============================================================================
 
 if (!isset($_SESSION['id_utilisateur'])) {
@@ -17,7 +18,32 @@ if (!isset($_SESSION['id_utilisateur'])) {
 
 require_once 'config.php';
 
-$id_utilisateur = $_SESSION['id_utilisateur'];
+$id_utilisateur = (int)$_SESSION['id_utilisateur'];
+
+// -----------------------------------------------------------------------------
+// SÉCURITÉ ACTIVE : VERIFICATION L'EXISTENCE DU MEMBRE EN BDD
+// -----------------------------------------------------------------------------
+try {
+    $stmt_chk = $bdd->prepare("SELECT id_utilisateur, statut FROM jevend_utilisateurs WHERE id_utilisateur = ?");
+    $stmt_chk->execute([$id_utilisateur]);
+    $membre_actif = $stmt_chk->fetch(PDO::FETCH_ASSOC);
+
+    // Si le membre a été supprimé ou bloqué par la modération
+    if (!$membre_actif || $membre_actif['statut'] === 'bloque') {
+        unset($_SESSION['id_utilisateur']);
+        session_unset();
+        session_destroy();
+        session_start();
+        
+        $_SESSION['erreur_connexion'] = "Votre session a expiré ou ce compte n'existe plus.";
+        header('Location: connexion.php');
+        exit();
+    }
+} catch (PDOException $e) {
+    // En cas de pépin SQL, blocage préventif
+    die("Erreur de validation du compte : " . htmlspecialchars($e->getMessage()));
+}
+
 $erreur = "";
 $succes = "";
 $quota_global_atteint = false;

@@ -250,5 +250,10 @@ try {
             </div>
         <?php endif; ?>
 
+<div style="padding: 0 25px 25px 25px; border-top: 2px solid #f1f5f9; margin-top: 10px;">
+<?php require_once __DIR__ . '/_nous_joindre_recu.php'; ?>
+</div>
+
+
     </div>
 </details>

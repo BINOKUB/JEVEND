@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // SCRIPT      : inscription.php
-// REVISION    : 5.0 - Sécurité Accords Communautaires + Verrouillage Regex
+// REVISION    : 5.1 - Capture silencieuse des métadonnées navigateur
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -102,6 +102,10 @@ try {
 
             <form id="formInscription" action="inscription_execute.php" method="POST" novalidate>
                 
+                <!-- CHAMPS CACHÉS POUR LE SCORE DE CONFIANCE -->
+                <input type="hidden" name="js_timezone" id="js_timezone" value="">
+                <input type="hidden" name="js_langue" id="js_langue" value="">
+
                 <!-- SÉLECTEUR TYPE DE COMPTE -->
                 <div class="champ-groupe" style="margin-bottom: 20px;">
                     <label style="font-weight: bold; display: block; margin-bottom: 8px; color: #0f172a;">Type de compte :</label>
@@ -203,6 +207,23 @@ try {
     </div>
 
     <script>
+    // Capture automatique des informations du navigateur au chargement
+    document.addEventListener("DOMContentLoaded", function() {
+        try {
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Inconnu';
+            document.getElementById('js_timezone').value = tz;
+        } catch(e) {
+            document.getElementById('js_timezone').value = 'ErreurJS';
+        }
+
+        try {
+            const lang = navigator.language || navigator.userLanguage || 'Inconnu';
+            document.getElementById('js_langue').value = lang;
+        } catch(e) {
+            document.getElementById('js_langue').value = 'ErreurJS';
+        }
+    });
+
     const form = document.getElementById('formInscription');
     const btnSubmit = document.getElementById('btnSubmit');
 
@@ -241,11 +262,9 @@ try {
         } else if (id === 'id_ville') {
             valide = parseInt(val) > 0;
         } else if (id === 'nom') {
-            // Validation: Max 2 mots, non vide
             let mots = val.split(/\s+/);
             valide = (val.length > 0 && mots.length <= 2);
         } else if (id === 'cellulaire') {
-            // Validation: Format exact XXX-XXX-XXXX
             valide = /^\d{3}-\d{3}-\d{4}$/.test(val);
         } else if (id === 'accord_regles') {
             valide = el.checked;
@@ -267,7 +286,6 @@ try {
     function verifierFormulaireComplet() {
         let formulaireValide = true;
 
-        // Validation des champs communs
         for (const id of inputsObligatoiresBase) {
             const el = document.getElementById(id);
             const val = el ? el.value.trim() : '';
@@ -286,13 +304,11 @@ try {
             }
         }
 
-        // Vérification de la case à cocher
         const chkRegles = document.getElementById('accord_regles');
         if (!chkRegles || !chkRegles.checked) {
             formulaireValide = false;
         }
 
-        // Validation des champs Pro si mode Pro actif
         if (estPro()) {
             for (const id of inputsObligatoiresPro) {
                 const el = document.getElementById(id);
@@ -302,7 +318,6 @@ try {
             }
         }
 
-        // Gestion de l'état du bouton
         if (formulaireValide) {
             btnSubmit.disabled = false;
             btnSubmit.classList.remove('btn-desactive');
@@ -314,7 +329,6 @@ try {
         }
     }
 
-    // Attacher les événements dynamiques
     const tousChamps = [...inputsObligatoiresBase, ...inputsObligatoiresPro, 'site_web', 'accord_regles'];
     tousChamps.forEach(id => {
         const el = document.getElementById(id);
@@ -336,7 +350,6 @@ try {
         }
     });
 
-    // Évaluation initiale au chargement
     verifierFormulaireComplet();
     </script>
 <?php 

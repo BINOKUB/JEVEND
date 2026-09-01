@@ -86,6 +86,7 @@
         <a href="confidentialite.php" class="texte-desktop">Confidentialité</a>
     </div>
 
+
     <!-- Côté droit : Réseaux sociaux, Chat Live & Action -->
     <div class="barre-flottante-droite">
         <span style="color: #64748b;" class="texte-desktop">Suivez-nous :</span>
@@ -95,8 +96,15 @@
             <?php if (file_exists('chat_live.php')) include 'chat_live.php'; ?>
         </div>
 
+
         <a href="https://www.facebook.com/jevend.officiel/" target="_blank" title="Facebook" style="font-weight: bold; font-size: 1rem;">fb</a>
         <a href="https://youtube.com" target="_blank" title="YouTube" style="font-weight: bold; font-size: 0.9rem;">▶</a>
+
+<!-- Lien Footer Nous Joindre -->
+<a href="nous_joindre.php" title="Nous contacter" style="color: #64748b; text-decoration: none; font-size: 0.9rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;">
+     <span>✉️</span>
+</a>
+
         <a href="connexion.php" class="btn-action-rapide">+ Poster</a>
     </div>
 </div>

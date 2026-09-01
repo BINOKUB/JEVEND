@@ -2,7 +2,7 @@
 /*
 ====================================================
 Fichier       : panneau.php
-Révision      : v2.6 - Fix Redirection Infinie & Session
+Révision      : v2.7 - Correction ID Membres Score & Nettoyage
 Description   : Panneau de configuration - JeVend.com
 ====================================================
 */
@@ -182,43 +182,40 @@ require_once 'config.php';
             <?php 
             if (file_exists('admin_modules/_admin_format_email.php')) {
                 include 'admin_modules/_admin_format_email.php';
-            } elseif (file_exists('admin_modules/_admin_format_email.php')) {
-                include 'admin_modules/_admin_format_email.php';
             }
             ?>
         </div>  
 
+        <!-- MODULE 13 : SANTE DU STOCKAGE ET IMAGES -->
+        <div id="onglet-stock-images" class="section-panneau">
+            <?php 
+            if (file_exists('admin_modules/_stock_images_sanitaire.php')) {
+                include 'admin_modules/_stock_images_sanitaire.php';
+            }
+            ?>
+        </div>
 
-<!-- MODULE 13 : SANTE DU STOCKAGE ET IMAGES -->
-<div id="onglet-stock-images" class="section-panneau">
-    <?php 
-    if (file_exists('admin_modules/_stock_images_sanitaire.php')) {
-        include 'admin_modules/_stock_images_sanitaire.php';
-    } elseif (file_exists('admin_modules/_stock_images_sanitaire.php')) {
-        include 'admin_modules/_stock_images_sanitaire.php';
-    }
-    ?>
-</div>
+        <!-- MODULE 14 : CALENDRIER DES STATISTIQUES -->
+        <div id="onglet-calendrier-stats" class="section-panneau">
+            <?php 
+            try {
+                if (file_exists('admin_modules/_calendrier_stats.php')) {
+                    include 'admin_modules/_calendrier_stats.php';
+                }
+            } catch (Throwable $e) {
+                // Gestion silencieuse des erreurs
+            }
+            ?>
+        </div>
 
-
-<!-- MODULE 14 : CALENDRIER DES STATISTIQUES -->
-<div id="onglet-calendrier-stats" class="section-panneau">
-    <?php 
-    try {
-        if (file_exists('admin_modules/_calendrier_stats.php')) {
-            include 'admin_modules/_calendrier_stats.php';
-        } elseif (file_exists('admin_modules/_calendrier_stats.php')) {
-            include 'admin_modules/_calendrier_stats.php';
-        }
-    } catch (Throwable $e) {
-      //  echo '<div style="background:#fee2e2; color:#b91c1c; padding:15px; border-radius:6px;">⚠️ Erreur Module Calendrier : ' . htmlspecialchars($e->getMessage()) . '</div>';
-    }
-    ?>
-</div>
-
-
-
-
+        <!-- MODULE 15 : SCORE DES MEMBRES A RISQUE -->
+        <div id="onglet-membres-score" class="section-panneau">
+            <?php 
+            if (file_exists('admin_modules/_admin_membres_score.php')) {
+                include 'admin_modules/_admin_membres_score.php';
+            }
+            ?>
+        </div>
 
     </div>
 

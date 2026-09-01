@@ -1,7 +1,7 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : inscription_execute.php
-// REVISION     : 1.1 - Traitement sécurisé + Validation Accord Communautaire
+// REVISION     : 1.2 - Traitement sécurisé + Calcul Score de Confiance
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -17,6 +17,45 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+// Fonction de calcul du score de confiance
+function evaluerScoreMembre($timezone, $langue, $cellulaire) {
+    $score = 100;
+
+    // 1. Validation de la Zone Horaire Système (Est du Canada)
+    $zones_autorisees = [
+        'America/Toronto', 
+        'America/Montreal', 
+        'America/Moncton', 
+        'America/Nipigon', 
+        'America/Thunder_Bay', 
+        'America/Iqaluit', 
+        'America/Pangnirtung', 
+        'America/Blanc-Sablon'
+    ];
+
+    if (!in_array($timezone, $zones_autorisees)) {
+        $score -= 35; // Horloge système non calée sur notre fuseau
+    }
+
+    // 2. Validation de la Langue du Navigateur (Francophone)
+    if (empty($langue) || strpos(strtolower($langue), 'fr') !== 0) {
+        $score -= 20; // Le navigateur n'est pas réglé en français
+    }
+
+    // 3. Validation de l'indicatif régional du cellulaire
+    $cell_nettoye = preg_replace('/\D/', '', $cellulaire);
+    if (strlen($cell_nettoye) === 10) {
+        $indicatif = substr($cell_nettoye, 0, 3);
+        $indicatifs_qc_ca = ['418', '581', '367', '514', '438', '819', '873', '450', '579', '825', '403', '780', '236', '250', '604', '778', '204', '431', '506', '709', '902', '343', '613', '705', '249', '807', '289', '365', '905', '416', '647', '306', '639'];
+        
+        if (!in_array($indicatif, $indicatifs_qc_ca)) {
+            $score -= 15; // Indicatif hors Canada / Amérique du Nord classique
+        }
+    }
+
+    return max(0, $score);
+}
+
 // Nettoyage et sanitisation des entrées
 $nom            = trim($_POST['nom'] ?? '');
 $courriel       = strtolower(trim($_POST['courriel'] ?? ''));
@@ -24,6 +63,10 @@ $cellulaire     = trim($_POST['cellulaire'] ?? '');
 $id_ville       = (int)($_POST['id_ville'] ?? 0);
 $type_compte    = (isset($_POST['type_compte']) && $_POST['type_compte'] === 'pro') ? 'pro' : 'particulier';
 $accord_regles  = isset($_POST['accord_regles']) ? true : false;
+
+// Métadonnées navigateur
+$js_timezone    = trim($_POST['js_timezone'] ?? 'Inconnu');
+$js_langue      = trim($_POST['js_langue'] ?? 'Inconnu');
 
 // Champs spécifiques PRO
 $nom_entreprise = trim($_POST['nom_entreprise'] ?? '');
@@ -78,6 +121,10 @@ if ($type_compte === 'pro') {
     }
 }
 
+// Evaluation du score de confiance et du statut
+$score_confiance = evaluerScoreMembre($js_timezone, $js_langue, $cellulaire);
+$statut_verification = ($score_confiance < 70) ? 'suspect' : 'ok';
+
 try {
     // Démarrage d'une transaction pour lier les deux insertions de manière atomique
     $bdd->beginTransaction();
@@ -98,11 +145,11 @@ try {
     $expiration = date('Y-m-d H:i:s', strtotime('+15 minutes'));
     $mot_de_passe_factice = password_hash(uniqid(rand(), true), PASSWORD_DEFAULT);
 
-    // Insertion BDD Utilisateur
+    // Insertion BDD Utilisateur avec score et métadonnées
     $insert = $bdd->prepare("
         INSERT INTO jevend_utilisateurs 
-        (nom, courriel, cellulaire, id_ville, mot_de_passe, statut, type_compte, nom_entreprise, telephone_pro, adresse_pro, site_web, neq, jeton_connexion, jeton_expiration) 
-        VALUES (?, ?, ?, ?, ?, 'actif', ?, ?, ?, ?, ?, NULL, ?, ?)
+        (nom, courriel, cellulaire, id_ville, mot_de_passe, statut, score_confiance, js_timezone, js_langue, statut_verification, type_compte, nom_entreprise, telephone_pro, adresse_pro, site_web, neq, jeton_connexion, jeton_expiration) 
+        VALUES (?, ?, ?, ?, ?, 'actif', ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)
     ");
     $insert->execute([
         $nom, 
@@ -110,6 +157,10 @@ try {
         $cellulaire, 
         $id_ville, 
         $mot_de_passe_factice, 
+        $score_confiance,
+        $js_timezone,
+        $js_langue,
+        $statut_verification,
         $type_compte, 
         ($type_compte === 'pro' ? $nom_entreprise : NULL), 
         ($type_compte === 'pro' ? $telephone_pro : NULL), 

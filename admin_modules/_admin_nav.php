@@ -88,6 +88,7 @@ Description   : Barre de navigation modulaire pour le panneau d'administration
 <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-format-email')">✉️ Format Courriel</button>
 <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-stock-images')">💾 Stock Images</button>
 <button type="button" class="onglet-btn" onclick="changerOnglet('onglet-calendrier-stats')">📅 Calendrier Stats</button>
+<button type="button" class="onglet-btn" onclick="changerOnglet('onglet-membres-score')">🛡️ Membres & Score</button>
 
 
 </div>

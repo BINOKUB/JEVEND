@@ -1,16 +1,15 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : admin_modules/_calendrier_stats.php
-// REVISION     : 1.2 - Isolation stricte AJAX (Prévention duplication)
+// REVISION     : 1.3 - Isolation AJAX + Pagination Dynamique du jour
 // SCRIPT COMPLET ET SUIVI
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// A. TRAITEMENT EXCLUSIF DE LA REQUÊTE AJAX (TABLEAU DU JOUR)
+// A. TRAITEMENT EXCLUSIF DE LA REQUÊTE AJAX (TABLEAU DU JOUR PAGINÉ)
 // -----------------------------------------------------------------------------
 if (isset($_GET['ajax_date'])) {
     
-    // Nettoyage complet des tampons de sortie pour éviter d'inclure du HTML parent
     while (ob_get_level()) {
         ob_end_clean();
     }
@@ -19,9 +18,27 @@ if (isset($_GET['ajax_date'])) {
 
     $date_cible = $_GET['ajax_date'];
     $cat_cible  = $_GET['ajax_cat'] ?? 'all';
+    $page       = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+    $limite     = 10; // Nombre d'annonces par page
+    $offset     = ($page - 1) * $limite;
 
     if (isset($bdd)) {
         try {
+            // 1. Compter le total d'annonces pour ce jour
+            $sql_count = "SELECT COUNT(*) FROM jevend_annonces WHERE DATE(date_creation) = :date_jour";
+            $params_count = ['date_jour' => $date_cible];
+
+            if ($cat_cible !== 'all' && is_numeric($cat_cible)) {
+                $sql_count .= " AND id_categorie = :cat";
+                $params_count['cat'] = (int)$cat_cible;
+            }
+
+            $stmt_count = $bdd->prepare($sql_count);
+            $stmt_count->execute($params_count);
+            $total_annonces_jour = (int)$stmt_count->fetchColumn();
+            $total_pages = ceil($total_annonces_jour / $limite);
+
+            // 2. Récupérer la tranche de 10 annonces
             $sql_ajax = "SELECT a.titre_objet_nettoye, a.prix, a.date_creation, c.nom_fr as nom_categorie, u.nom as nom_utilisateur 
                          FROM jevend_annonces a
                          LEFT JOIN jevend_categories c ON a.id_categorie = c.id_categorie
@@ -35,15 +52,21 @@ if (isset($_GET['ajax_date'])) {
                 $params_ajax['cat'] = (int)$cat_cible;
             }
 
-            $sql_ajax .= " ORDER BY a.date_creation DESC";
+            $sql_ajax .= " ORDER BY a.date_creation DESC LIMIT :limite OFFSET :offset";
 
             $stmt_ajax = $bdd->prepare($sql_ajax);
-            $stmt_ajax->execute($params_ajax);
+            foreach ($params_ajax as $key => $val) {
+                $stmt_ajax->bindValue($key, $val);
+            }
+            $stmt_ajax->bindValue(':limite', $limite, PDO::PARAM_INT);
+            $stmt_ajax->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt_ajax->execute();
+
             $annonces_jour = $stmt_ajax->fetchAll(PDO::FETCH_ASSOC);
 
             if (count($annonces_jour) > 0) {
                 echo '<table style="width:100%; border-collapse:collapse; background:#fff; font-size:0.85rem; border:1px solid #cbd5e1; margin-top:10px;">';
-                echo '<tr style="background:#0f172a; color:#fff;"><th style="padding:8px; text-align:left;">Heure</th><th style="padding:8px; text-align:left;">Titre</th><th style="padding:8px; text-align:left;">Catégorie</th><th style="padding:8px; text-align:left;">Membre</th><th style="padding:8px; text-align:right;">Prix</th></tr>';
+                echo '<tr style="background:#0f172a; color:#fff;"><th style="padding:8px; text-align:left;">Heure</th><th style="padding:8px; text-align:left;">Titre</th><th style="padding:8px; text-align:left;">Catégorie</th><th style="padding:8px; text-align:left;">Membre</th><th style="padding:8px; text-align:right;">Prix Demand&eacute;</th></tr>';
                 foreach ($annonces_jour as $ann) {
                     $heure = date('H:i', strtotime($ann['date_creation']));
                     echo '<tr style="border-bottom:1px solid #e2e8f0;">';
@@ -55,6 +78,24 @@ if (isset($_GET['ajax_date'])) {
                     echo '</tr>';
                 }
                 echo '</table>';
+
+                // Barre de pagination
+                if ($total_pages > 1) {
+                    echo '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:0.85rem;">';
+                    echo '<span style="color:#64748b; font-weight:bold;">Page ' . $page . ' sur ' . $total_pages . ' (' . $total_annonces_jour . ' publications)</span>';
+                    echo '<div style="display:flex; gap:6px;">';
+
+                    if ($page > 1) {
+                        echo '<button onclick="chargerDetailJour(\'' . $date_cible . '\', \'' . $cat_cible . '\', ' . ($page - 1) . ')" style="padding:5px 10px; background:#e2e8f0; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">◄ Précédent</button>';
+                    }
+
+                    if ($page < $total_pages) {
+                        echo '<button onclick="chargerDetailJour(\'' . $date_cible . '\', \'' . $cat_cible . '\', ' . ($page + 1) . ')" style="padding:5px 10px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Suivant ►</button>';
+                    }
+
+                    echo '</div>';
+                    echo '</div>';
+                }
             } else {
                 echo '<div style="color:#64748b; font-style:italic; padding:10px;">Aucune annonce publiée à cette date.</div>';
             }
@@ -63,7 +104,6 @@ if (isset($_GET['ajax_date'])) {
         }
     }
     
-    // FIN D'EXÉCUTION STRICTE : Ne renvoie que le tableau HTML
     exit();
 }
 
@@ -71,7 +111,6 @@ if (isset($_GET['ajax_date'])) {
 // B. AFFICHAGE DE L'INTERFACE COMPLÈTE DU CALENDRIER
 // -----------------------------------------------------------------------------
 
-// 1. GESTION DES FILTRES (MOIS, ANNÉE, CATÉGORIE)
 $mois_actuel    = isset($_GET['cal_mois']) ? (int)$_GET['cal_mois'] : (int)date('m');
 $annee_actuelle = isset($_GET['cal_annee']) ? (int)$_GET['cal_annee'] : (int)date('Y');
 $id_cat_filtre  = isset($_GET['cal_cat']) ? $_GET['cal_cat'] : 'all';
@@ -86,7 +125,6 @@ if (!$date_objet) {
 $mois_prev = (clone $date_objet)->modify('-1 month');
 $mois_next = (clone $date_objet)->modify('+1 month');
 
-// 2. RÉCUPÉRATION DES CATÉGORIES
 $liste_categories = [];
 if (isset($bdd)) {
     try {
@@ -95,7 +133,6 @@ if (isset($bdd)) {
     } catch (PDOException $e) { }
 }
 
-// 3. STATISTIQUES DES PUBLICATIONS DU MOIS
 $stats_jours = [];
 $total_mois = 0;
 
@@ -127,7 +164,6 @@ if (isset($bdd)) {
     } catch (PDOException $e) { }
 }
 
-// 4. PRÉPARATION DU CALENDRIER
 $premier_jour_semaine = (int)$date_objet->format('N');
 $nb_jours_dans_mois   = (int)$date_objet->format('t');
 $nom_mois_fr = [
@@ -141,21 +177,16 @@ $nom_mois_fr = [
     .cal-conteneur { background: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .cal-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
     .cal-titre { font-size: 1.4rem; font-weight: bold; color: #0f172a; margin: 0; }
-    
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
     .cal-entete-jour { background: #0f172a; color: #ffffff; text-align: center; padding: 10px; font-weight: bold; font-size: 0.85rem; border-radius: 4px; }
-    
     .cal-jour { min-height: 80px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; background: #ffffff; position: relative; cursor: pointer; transition: all 0.2s; }
     .cal-jour:hover { border-color: #2563eb; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .cal-jour.vide { background: #f8fafc; border-color: #f1f5f9; cursor: default; }
-    
     .cal-num-jour { font-weight: bold; font-size: 0.9rem; color: #334155; }
     .cal-badge { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; margin-top: 10px; }
-    
     .heat-0 { background: #f1f5f9; color: #94a3b8; }
     .heat-low { background: #dcfce7; color: #166534; }
     .heat-high { background: #15803d; color: #ffffff; }
-
     .cal-detail-boite { margin-top: 25px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: none; }
 </style>
 
@@ -205,7 +236,7 @@ $nom_mois_fr = [
 
             $date_complete = sprintf('%04d-%02d-%02d', $annee_actuelle, $mois_actuel, $j);
             ?>
-            <div class="cal-jour" onclick="chargerDetailJour('<?= $date_complete ?>', '<?= $id_cat_filtre ?>')">
+            <div class="cal-jour" onclick="chargerDetailJour('<?= $date_complete ?>', '<?= $id_cat_filtre ?>', 1)">
                 <div class="cal-num-jour"><?= $j ?></div>
                 <?php if ($nb_annonces > 0): ?>
                     <span class="cal-badge <?= $classe_heat ?>"><?= $nb_annonces ?> pub.</span>
@@ -224,7 +255,7 @@ $nom_mois_fr = [
 </div>
 
 <script>
-function chargerDetailJour(dateJour, catFiltre) {
+function chargerDetailJour(dateJour, catFiltre, page = 1) {
     const zone = document.getElementById('zone-detail-jour');
     const titre = document.getElementById('titre-detail-jour');
     const contenu = document.getElementById('contenu-detail-jour');
@@ -233,8 +264,7 @@ function chargerDetailJour(dateJour, catFiltre) {
     titre.innerText = '📋 Publications du ' + dateJour;
     contenu.innerHTML = '<em>Chargement des annonces en cours...</em>';
 
-    // Appel direct ciblé sur le fichier du module
-    fetch('admin_modules/_calendrier_stats.php?ajax_date=' + dateJour + '&ajax_cat=' + catFiltre)
+    fetch('admin_modules/_calendrier_stats.php?ajax_date=' + dateJour + '&ajax_cat=' + catFiltre + '&page=' + page)
         .then(response => response.text())
         .then(html => {
             contenu.innerHTML = html;
