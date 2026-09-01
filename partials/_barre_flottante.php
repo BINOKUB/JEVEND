@@ -89,14 +89,14 @@
 
     <!-- Côté droit : Réseaux sociaux, Chat Live & Action -->
     <div class="barre-flottante-droite">
-        <span style="color: #64748b;" class="texte-desktop">Suivez-nous :</span>
+       
         
         <!-- Inclusion du Chat Live positionné à gauche de Facebook -->
         <div class="conteneur-chat-barre">
             <?php if (file_exists('chat_live.php')) include 'chat_live.php'; ?>
         </div>
 
-
+ <span style="color: #64748b;" class="texte-desktop">Suivez-nous :</span>
         <a href="https://www.facebook.com/jevend.officiel/" target="_blank" title="Facebook" style="font-weight: bold; font-size: 1rem;">fb</a>
         <a href="https://youtube.com" target="_blank" title="YouTube" style="font-weight: bold; font-size: 0.9rem;">▶</a>
 
