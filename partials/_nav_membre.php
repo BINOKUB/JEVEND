@@ -212,7 +212,7 @@ if (isset($_SESSION['id_utilisateur']) && isset($bdd)) {
             </a>
         <?php endif; ?>
         <a href="edit_membre.php" style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #ffffff;" title="Modifier mes informations">
-            <strong><?= htmlspecialchars($_SESSION['nom'] ?? '') ?></strong>
+           <strong><?= htmlspecialchars($_SESSION['nom'] ?? $_SESSION['courriel'] ?? 'Membre') ?></strong>
         </a>
     </span>
     <a href="deconnexion.php" style="margin-left: 20px; color: #94a3b8; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: color 0.15s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">Déconnexion</a>

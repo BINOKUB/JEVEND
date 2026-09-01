@@ -1,7 +1,8 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : connexion_execute.php
-// REVISION     : 1.3 - Vue HTML isolée (_code_mail_visuel.php) + Switch PHPmail / SMTP
+// REVISION     : 1.5 - Blocage de la création du cookie 60 jours pour le rôle Admin
+// SCRIPT COMPLET ET SUIVI
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -9,7 +10,11 @@ date_default_timezone_set('America/Montreal');
 
 // Redirection si déjà connecté
 if (isset($_SESSION['id_utilisateur'])) {
-    header("Location: connexion.php");
+    if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+        header("Location: panneau.php");
+    } else {
+        header("Location: espace_membre.php");
+    }
     exit();
 }
 
@@ -43,9 +48,17 @@ if ($action === 'demande_code') {
             if ($user['statut'] === 'bloque') {
                 $_SESSION['erreur_connexion'] = "L'accès à ce compte a été suspendu par l'administration.";
             } else {
+                // Récupération du délai de validité configuré dans la BDD (par défaut 15 min)
+                $duree_validite = 15;
+                $stmt_cfg = $bdd->query("SELECT duree_validite_minutes FROM jevend_format_email WHERE cle_template = 'code_connexion' LIMIT 1");
+                $cfg_val = $stmt_cfg->fetchColumn();
+                if ($cfg_val && (int)$cfg_val > 0) {
+                    $duree_validite = (int)$cfg_val;
+                }
+
                 // Code secret à 6 chiffres
                 $code_securite = (string)rand(100000, 999999);
-                $expiration = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+                $expiration = date('Y-m-d H:i:s', strtotime('+' . $duree_validite . ' minutes'));
 
                 $update = $bdd->prepare("UPDATE jevend_utilisateurs SET jeton_connexion = ?, jeton_expiration = ? WHERE id_utilisateur = ?");
                 $update->execute([$code_securite, $expiration, $user['id_utilisateur']]);
@@ -58,7 +71,7 @@ if ($action === 'demande_code') {
                 echo "<script>console.log('%c[TEST JETON] Courriel: " . addslashes($courriel) . " | CODE SECRET: " . $code_securite . "', 'background: #16a34a; color: #ffffff; font-size: 14px; padding: 8px; font-weight: bold; border-radius: 4px;');</script>";
 
                 // -------------------------------------------------------------
-                // CHARGEMENT DU VISUEL SEPARÉ (_code_mail_visuel.php)
+                // CHARGEMENT DU VISUEL SÉPARÉ (_code_mail_visuel.php)
                 // -------------------------------------------------------------
                 $nom_affiche = htmlspecialchars($user['nom'] ?? 'Membre');
                 $sujet = "Votre code de connexion unique - jevend.com";
@@ -70,11 +83,9 @@ if ($action === 'demande_code') {
                 // -------------------------------------------------------------
                 // BASCULEMENT D'ENVOI : PHP MAIL vs SMTP
                 // -------------------------------------------------------------
-                $mode_envoi = 'PHP_MAIL'; // Changer en 'SMTP' le jour venu
+                $mode_envoi = 'PHP_MAIL'; // Changer en 'SMTP' au besoin
 
                 if ($mode_envoi === 'PHP_MAIL') {
-                    
-                    // Option 1 : Envoi natif PHP mail()
                     $headers  = "MIME-Version: 1.0\r\n";
                     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
                     $headers .= "From: jevend.com <no-reply@jevend.com>\r\n";
@@ -82,28 +93,8 @@ if ($action === 'demande_code') {
                     $headers .= "X-Mailer: PHP/" . phpversion();
 
                     @mail($courriel, $sujet, $message, $headers);
-
                 } elseif ($mode_envoi === 'SMTP') {
-
-                    // Option 2 : Emplacement prêt pour PHPMailer / SMTP
-                    /*
-                    require_once 'vendor/autoload.php';
-                    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-                    $mail->isSMTP();
-                    $mail->Host       = 'mail.jevend.com'; // À remplir avec l'hôte de ton hébergeur
-                    $mail->SMTPAuth   = true;
-                    $mail->Username   = 'no-reply@jevend.com';
-                    $mail->Password   = 'VOTRE_MOT_DE_PASSE_SMTP';
-                    $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-                    $mail->Port       = 587;
-                    $mail->setFrom('no-reply@jevend.com', 'jevend.com');
-                    $mail->addAddress($courriel, $nom_affiche);
-                    $mail->isHTML(true);
-                    $mail->CharSet    = 'UTF-8';
-                    $mail->Subject    = $sujet;
-                    $mail->Body       = $message;
-                    $mail->send();
-                    */
+                    /* Emplacement PHPMailer */
                 }
 
                 $_SESSION['succes_connexion'] = "Un code secret d'accès unique a été généré. Consultez votre boîte de réception.";
@@ -183,37 +174,44 @@ if ($action === 'valider_code') {
                     $stmt_stat->execute([$user['id_utilisateur'], $type_appareil, $date_actuelle]);
                 } catch (PDOException $e_stat) { }
 
-                // GENERATION DU JETON LONGUE DURÉE (60 JOURS)
-                $token_60_jours = bin2hex(random_bytes(32));
-                $expiration_60_jours = date('Y-m-d H:i:s', strtotime('+60 days'));
-
-                $update_token = $bdd->prepare("UPDATE jevend_utilisateurs SET jeton_connexion = ?, jeton_expiration = ? WHERE id_utilisateur = ?");
-                $update_token->execute([$token_60_jours, $expiration_60_jours, $user['id_utilisateur']]);
-
-                // Cookie 60 jours
-                $duree_cookie = time() + (60 * 24 * 60 * 60);
-                setcookie(
-                    'jevend_remember',
-                    $token_60_jours,
-                    [
-                        'expires'  => $duree_cookie,
-                        'path'     => '/',
-                        'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-                        'httponly' => true,
-                        'samesite' => 'Lax'
-                    ]
-                );
-
                 unset($_SESSION['temp_email_connexion'], $_SESSION['essais_code_connexion']);
 
                 session_regenerate_id(true);
 
-                // ENREGISTREMENT DE LA SESSION MEMBRE
+                // ENREGISTREMENT COMPLET DES VARIABLES DE SESSION
                 $_SESSION['id_utilisateur'] = $user['id_utilisateur'];
                 $_SESSION['nom']            = $user['nom'];
-                $_SESSION['courriel']       = $user['courriel'];
+                $_SESSION['courriel']       = strtolower(trim($user['courriel']));
                 $_SESSION['type_compte']    = $user['type_compte'] ?? 'particulier';
                 $_SESSION['role']           = $user['role'] ?? 'membre';
+
+                // GESTION SÉCURISÉE DES COOKIES SELON LE RÔLE
+                if ($_SESSION['role'] === 'admin') {
+                    // Supression de tout cookie d'auto-connexion existant pour l'admin
+                    setcookie('jevend_remember', '', time() - 3600, '/');
+                    
+                    $clear_token = $bdd->prepare("UPDATE jevend_utilisateurs SET jeton_connexion = NULL, jeton_expiration = NULL WHERE id_utilisateur = ?");
+                    $clear_token->execute([$user['id_utilisateur']]);
+                } else {
+                    // CRÉATION DU JETON 60 JOURS UNIQUEMENT POUR LES MEMBRES RÉGULIERS
+                    $token_60_jours = bin2hex(random_bytes(32));
+                    $expiration_60_jours = date('Y-m-d H:i:s', strtotime('+60 days'));
+
+                    $update_token = $bdd->prepare("UPDATE jevend_utilisateurs SET jeton_connexion = ?, jeton_expiration = ? WHERE id_utilisateur = ?");
+                    $update_token->execute([$token_60_jours, $expiration_60_jours, $user['id_utilisateur']]);
+
+                    setcookie(
+                        'jevend_remember',
+                        $token_60_jours,
+                        [
+                            'expires'  => time() + (60 * 24 * 60 * 60),
+                            'path'     => '/',
+                            'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+                            'httponly' => true,
+                            'samesite' => 'Lax'
+                        ]
+                    );
+                }
 
                 // DÉTERMINATION DE LA DESTINATION SELON LE RÔLE
                 $destination_defaut = 'espace_membre.php';
@@ -232,7 +230,7 @@ if ($action === 'valider_code') {
             }
 
         } else {
-            $_SESSION['erreur_connexion'] = "Le code secret saisi est incorrect ou a expiré (Délai maximal de 15 minutes dépassé).";
+            $_SESSION['erreur_connexion'] = "Le code secret saisi est incorrect ou a expiré.";
         }
     } catch (PDOException $e) {
         $_SESSION['erreur_connexion'] = "Une erreur technique s'est produite lors de la validation de vos accès.";

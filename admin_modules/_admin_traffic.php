@@ -107,4 +107,74 @@ $pct_cell = $stats_annee['total'] > 0 ? round(($stats_annee['cellulaire'] / $sta
         <span style="display: flex; align-items: center; gap: 5px;"><span style="display: inline-block; width: 12px; height: 12px; background: #2563eb; border-radius: 3px;"></span> Ordinateur / PC</span>
         <span style="display: flex; align-items: center; gap: 5px;"><span style="display: inline-block; width: 12px; height: 12px; background: #ec4899; border-radius: 3px;"></span> Cellulaire / Mobile</span>
     </div>
+
+<div></div>
+<div class="admin-bloc-vide">
+
+<!-- BLOC CONTRÔLE MAINTENANCE -->
+<div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-top: 20px; color: #f8fafc;">
+    <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: #38bdf8;">🚧 Devanture & Mode Maintenance</h3>
+    
+    <form id="form-maintenance-admin" style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 12px 15px; border-radius: 6px;">
+            <label for="maintenance_actif" style="font-weight: bold; cursor: pointer;">État de la devanture :</label>
+            <select name="maintenance_actif" id="maintenance_actif" style="background: #0f172a; color: #fff; border: 1px solid #475569; padding: 8px 12px; border-radius: 4px; font-weight: bold;">
+                <option value="0" <?= ($params_maint['maintenance_actif'] ?? '0') === '0' ? 'selected' : '' ?>>🟢 SITE OUVERT (Accès public)</option>
+                <option value="1" <?= ($params_maint['maintenance_actif'] ?? '0') === '1' ? 'selected' : '' ?>>🔴 FERMÉ (Devanture active)</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px;">Heure / Date de réouverture affichée :</label>
+                <input type="text" name="maintenance_heure_ouverture" value="<?= htmlspecialchars($params_maint['maintenance_heure_ouverture'] ?? '14:00') ?>" placeholder="ex: 14:00 ou Demain 8h" style="width: 100%; background: #1e293b; color: #fff; border: 1px solid #475569; padding: 10px; border-radius: 4px;">
+            </div>
+            
+            <div style="flex: 2;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px;">Message aux visiteurs :</label>
+                <input type="text" name="maintenance_message" value="<?= htmlspecialchars($params_maint['maintenance_message'] ?? '') ?>" placeholder="ex: Travaux techniques en cours..." style="width: 100%; background: #1e293b; color: #fff; border: 1px solid #475569; padding: 10px; border-radius: 4px;">
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span id="maint-status-msg" style="font-weight: bold; font-size: 0.9rem;"></span>
+            <button type="submit" style="background: #2563eb; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                Enregistrer les modifications
+            </button>
+        </div>
+    </form>
 </div>
+
+
+</div> </div>
+
+<script>
+document.getElementById('form-maintenance-admin').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const statusMsg = document.getElementById('maint-status-msg');
+    const formData = new FormData(this);
+    formData.append('action', 'update_maintenance');
+
+    statusMsg.style.color = '#38bdf8';
+    statusMsg.textContent = 'Mise à jour en cours...';
+
+    fetch('panneau_maintenance_ajax.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            statusMsg.style.color = '#4ade80';
+            statusMsg.textContent = ' Configuration enregistrée avec succès !';
+        } else {
+            statusMsg.style.color = '#f87171';
+            statusMsg.textContent = ' Erreur : ' + (data.error || 'Impossible de sauvegarder.');
+        }
+    })
+    .catch(() => {
+        statusMsg.style.color = '#f87171';
+        statusMsg.textContent = ' Erreur de connexion avec le serveur.';
+    });
+});
+</script>
