@@ -182,8 +182,8 @@ require_once 'config.php';
             <?php 
             if (file_exists('admin_modules/_admin_format_email.php')) {
                 include 'admin_modules/_admin_format_email.php';
-            } elseif (file_exists('_admin_format_email.php')) {
-                include '_admin_format_email.php';
+            } elseif (file_exists('admin_modules/_admin_format_email.php')) {
+                include 'admin_modules/_admin_format_email.php';
             }
             ?>
         </div>  
@@ -194,8 +194,8 @@ require_once 'config.php';
     <?php 
     if (file_exists('admin_modules/_stock_images_sanitaire.php')) {
         include 'admin_modules/_stock_images_sanitaire.php';
-    } elseif (file_exists('_stock_images_sanitaire.php')) {
-        include '_stock_images_sanitaire.php';
+    } elseif (file_exists('admin_modules/_stock_images_sanitaire.php')) {
+        include 'admin_modules/_stock_images_sanitaire.php';
     }
     ?>
 </div>
@@ -207,8 +207,8 @@ require_once 'config.php';
     try {
         if (file_exists('admin_modules/_calendrier_stats.php')) {
             include 'admin_modules/_calendrier_stats.php';
-        } elseif (file_exists('_calendrier_stats.php')) {
-            include '_calendrier_stats.php';
+        } elseif (file_exists('admin_modules/_calendrier_stats.php')) {
+            include 'admin_modules/_calendrier_stats.php';
         }
     } catch (Throwable $e) {
       //  echo '<div style="background:#fee2e2; color:#b91c1c; padding:15px; border-radius:6px;">⚠️ Erreur Module Calendrier : ' . htmlspecialchars($e->getMessage()) . '</div>';
