@@ -1,0 +1,6 @@
+# Redirection universelle des erreurs HTTP vers erreur.php
+ErrorDocument 401 /erreur.php?code=403
+ErrorDocument 403 /erreur.php?code=403
+ErrorDocument 404 /erreur.php?code=404
+ErrorDocument 500 /erreur.php?code=500
+ErrorDocument 503 /erreur.php?code=500

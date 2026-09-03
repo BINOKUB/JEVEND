@@ -1,7 +1,8 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : partials/_nav_membre.php
-// REVISION : 1.9 - Intégration du Hub de messagerie unifié (chat_hub.php)
+// REVISION : 2.0 - Intégration du lien de désinscription (Espace Membre)
+// SCRIPT COMPLET ET SUIVI
 // =============================================================================
 require_once __DIR__ . '/../chat_delete_membre.php'; // Inclus la purge automatique à la volée
 
@@ -200,26 +201,27 @@ if (isset($_SESSION['id_utilisateur']) && isset($bdd)) {
             <?php endif; ?>
         </div>
         
-       <div class="nav-membre-droite">
-    <!-- ACCÈS AU CENTRE DE MESSAGERIE UNIFIÉ (CHAT HUB) -->
-    <a href="chat_hub.php" style="color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-right: 15px; transition: color 0.15s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'" title="Centre de messagerie"> &nbsp;&nbsp; 💬 </a>
+        <div class="nav-membre-droite">
+            <!-- ACCÈS AU CENTRE DE MESSAGERIE UNIFIÉ (CHAT HUB) -->
+            <a href="chat_hub.php" style="color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-right: 15px; transition: color 0.15s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#94a3b8'" title="Centre de messagerie"> &nbsp;&nbsp; 💬 </a>
 
-    <span style="color: #94a3b8;">
-        Bonjour, 
-        <?php if ($nb_chat_non_lus > 0): ?>
-            <a href="chat_hub.php" class="badge-notif-chat" title="Vous avez <?= $nb_chat_non_lus ?> message(s) non lu(s)">
-                <?= $nb_chat_non_lus ?>
-            </a>
-        <?php endif; ?>
-        <a href="edit_membre.php" style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #ffffff;" title="Modifier mes informations">
-           <strong><?= htmlspecialchars($_SESSION['nom'] ?? $_SESSION['courriel'] ?? 'Membre') ?></strong>
-        </a>
-    </span>
-    <a href="deconnexion.php" style="margin-left: 20px; color: #94a3b8; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: color 0.15s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">Déconnexion</a>
-</div>
+            <span style="color: #94a3b8;">
+                Bonjour, 
+                <?php if ($nb_chat_non_lus > 0): ?>
+                    <a href="chat_hub.php" class="badge-notif-chat" title="Vous avez <?= $nb_chat_non_lus ?> message(s) non lu(s)">
+                        <?= $nb_chat_non_lus ?>
+                    </a>
+                <?php endif; ?>
+                <a href="edit_membre.php" style="color: #ffffff; text-decoration: none; border-bottom: 1px dotted #ffffff;" title="Modifier mes informations">
+                   <strong><?= htmlspecialchars($_SESSION['nom'] ?? $_SESSION['courriel'] ?? 'Membre') ?></strong>
+                </a>
+            </span>
 
-
-
+            <!-- DÉCONNEXION & DÉSINSCRIPTION -->
+            <a href="deconnexion.php" style="margin-left: 20px; color: #94a3b8; font-weight: bold; text-decoration: none; font-size: 0.85rem; transition: color 0.15s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">Déconnexion</a>
+            
+            <a href="desinscription.php" style="margin-left: 15px; color: #64748b; font-weight: normal; text-decoration: none; font-size: 0.78rem; transition: color 0.15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'" title="Fermer définitivement mon compte">Désinscription</a>
+        </div>
     </div>
 </div>
 
