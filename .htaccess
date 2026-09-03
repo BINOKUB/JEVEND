@@ -4,3 +4,8 @@ ErrorDocument 403 /erreur.php?code=403
 ErrorDocument 404 /erreur.php?code=404
 ErrorDocument 500 /erreur.php?code=500
 ErrorDocument 503 /erreur.php?code=500
+
+
+# Redirection invisible de sitemap.xml vers sitemap.php
+RewriteEngine On
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
