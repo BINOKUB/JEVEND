@@ -43,7 +43,7 @@ try {
 
         // Si l'heure est atteinte, on réouvre automatiquement le site et on met à jour la BDD
         if ($ouvert_automatiquement) {
-            $bdd->query("UPDATE jevend_parametres SET valeur_parametre = '0' WHERE cle_parametre = 'maintenance_actif'");
+          //  $bdd->query("UPDATE jevend_parametres SET valeur_parametre = '0' WHERE cle_parametre = 'maintenance_actif'");
             $est_en_maintenance = false;
         }
     }

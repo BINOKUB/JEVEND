@@ -5,6 +5,13 @@
 // =============================================================================
 session_start();
 require_once 'config.php';
+
+// --- CONTROLLE DE LA DEVANTURE ---
+if (defined('SITE_EN_MAINTENANCE') && SITE_EN_MAINTENANCE && ($_SESSION['role'] ?? '') !== 'admin') {
+    require_once 'maintenance.php';
+}
+
+
 require_once 'partials/_chek_bann_pro.php';
 // Purge automatique silencieuse des messages de chat de plus de 30 jours
 require_once 'chat_delete_membre.php';
