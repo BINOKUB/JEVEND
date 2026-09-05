@@ -85,17 +85,17 @@
 
                 <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-top: 15px;">
                     <div style="font-weight: bold; color: #38bdf8; font-size: 0.95rem; margin-bottom: 10px;">
-                        👨‍💼 Administrateur du Réseau :
+                        👨‍💼 Communication
                     </div>
                     
                     <div style="font-size: 0.9rem; margin-bottom: 8px;">
-                        📱 <strong>Cellulaire / SMS :</strong><br>
-                        <a href="tel:4184299029" style="color: #ffffff; font-weight: bold; font-size: 1.1rem; text-decoration: none;">418-429-9029</a>
+                        <strong></strong><br>
+                        <a href="tel:4184299029" style="color: #ffffff; font-weight: bold; font-size: 1.1rem; text-decoration: none;"></a>
                     </div>
 
                     <div style="font-size: 0.9rem;">
-                        ✉️ <strong>Courriel direct :</strong><br>
-                        <a href="mailto:douimet61@gmail.com" style="color: #38bdf8; font-weight: bold; text-decoration: none;">---</a>
+                        ✉️ <strong>Nous Joindre</strong><br>
+                        <a href="mailto:douimet61@gmail.com" style="color: #38bdf8; font-weight: bold; text-decoration: none;"><a href="nous_joindre.php" target="_new"><div style="font:arial; color:#38bdf8;"> Assistance Clientèle</div></a></a>
                     </div>
                 </div>
             </div>
