@@ -33,10 +33,13 @@ $bannieres_bloquees_ratio = false;
 try {
     $total_ann_actives = (int)$bdd->query("SELECT COUNT(*) FROM jevend_annonces WHERE statut = 'actif'")->fetchColumn();
     $total_bann_actives = (int)$bdd->query("SELECT COUNT(*) FROM jevend_bannieres_actives WHERE statut_affichage = 'active'")->fetchColumn();
-    $ratio_reseau = ($total_ann_actives > 0) ? ($total_bann_actives / $total_ann_actives) * 100 : 0;
     
-    if ($ratio_reseau >= 15.0) {
-        $bannieres_bloquees_ratio = true;
+    // Le quota de 15% ne s'applique QUE s'il y a au moins 20 annonces sur le site
+    if ($total_ann_actives >= 20) {
+        $ratio_reseau = ($total_bann_actives / $total_ann_actives) * 100;
+        if ($ratio_reseau >= 15.0) {
+            $bannieres_bloquees_ratio = true;
+        }
     }
 } catch (PDOException $e) { }
 ?>
@@ -49,7 +52,8 @@ try {
             Afin d'assurer un impact maximal et un taux d'exposition élevé à chaque annonceur, nous limitons les bannières en circulation à 15 % du volume global. De nouveaux emplacements ouvriront dès la parution de nouvelles annonces sur la plateforme.
         </div>
     </div>
-<?php endif; ?> </div>
+<?php endif; ?>
+ </div>
 
 
     <div class="zone-campagnes-pub">

@@ -24,7 +24,8 @@ $stmt_params = $bdd->query("SELECT cle_parametre, valeur_parametre FROM jevend_p
 $params_raw = $stmt_params->fetchAll(PDO::FETCH_KEY_PAIR);
 
 $mode_actuel = $params_raw['mode_paiement_pro'] ?? 'simulation';
-$sk_key = ($mode_actuel === 'stripe' && !empty($params_raw['stripe_sk_live'])) ? $params_raw['stripe_sk_live'] : ($params_raw['stripe_sk_test'] ?? '');
+// $sk_key = ($mode_actuel === 'stripe' && !empty($params_raw['stripe_sk_live'])) ? $params_raw['stripe_sk_live'] : ($params_raw['stripe_sk_test'] ?? '');
+$sk_key = (($mode_actuel === 'stripe' || $mode_actuel === 'live') && !empty($params_raw['stripe_sk_live'])) ? $params_raw['stripe_sk_live'] : ($params_raw['stripe_sk_test'] ?? '');
 
 if (empty($sk_key)) {
     header('Location: espace_membre_pro.php?erreur=stripe_config');

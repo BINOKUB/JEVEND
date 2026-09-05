@@ -352,7 +352,7 @@ if ($db) {
             <?= $faq_a_modifier ? "✏️ Modifier la question #".$faq_a_modifier['id'] : "➕ Ajouter une nouvelle question" ?>
         </h3>
 
-        <form method="POST" action="#onglet-faq" id="faqForm">
+        <form method="POST" action="panneau.php#onglet-faq" id="faqForm">
             <input type="hidden" name="action_faq" value="<?= $faq_a_modifier ? 'modifier' : 'ajouter' ?>">
             <?php if ($faq_a_modifier): ?>
                 <input type="hidden" name="faq_id" value="<?= $faq_a_modifier['id'] ?>">

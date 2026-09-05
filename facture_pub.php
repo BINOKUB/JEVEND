@@ -66,7 +66,7 @@ if (empty($token)) {
 // 2. TRAITEMENT DU CLIC SUR LE BOUTON DE PAIEMENT (Appel réel à l'API Stripe)
 if (isset($_POST['lancer_paiement']) && $pub) {
     
-    if ($mode_paiement === 'live') {
+    if ($mode_paiement === 'stripe') {
         $stripe_secret_key = $params['stripe_sk_live'] ?? '';
     } else {
         $stripe_secret_key = $params['stripe_sk_test'] ?? '';

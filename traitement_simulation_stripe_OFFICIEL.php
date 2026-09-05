@@ -17,10 +17,13 @@ if (!isset($_SESSION['id_utilisateur'])) {
     exit();
 }
 
-// Récupération de la clé secrète de production depuis jevend_parametres
-$stmt_key = $bdd->prepare("SELECT valeur_parametre FROM jevend_parametres WHERE cle_parametre = 'stripe_sk_live'");
-$stmt_key->execute();
-$stripe_secret_key = $stmt_key->fetchColumn();
+
+// Récupération dynamique de la clé secrète selon le mode configuré dans BDD
+$stmt_p = $bdd->query("SELECT cle_parametre, valeur_parametre FROM jevend_parametres WHERE cle_parametre IN ('mode_paiement_pro', 'stripe_sk_live', 'stripe_sk_test')");
+$params_p = $stmt_p->fetchAll(PDO::FETCH_KEY_PAIR);
+
+$mode_p = $params_p['mode_paiement_pro'] ?? 'simulation';
+$stripe_secret_key = ($mode_p === 'stripe' || $mode_p === 'live') ? ($params_p['stripe_sk_live'] ?? '') : ($params_p['stripe_sk_test'] ?? '');
 
 if (empty($stripe_secret_key)) {
     $_SESSION['erreur_achat'] = "Configuration Stripe de production manquante.";

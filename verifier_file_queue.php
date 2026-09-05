@@ -22,22 +22,28 @@ try {
     $stmt = $bdd->query("SELECT COUNT(*) FROM jevend_bannieres_actives_pro WHERE type_banniere = 'premium' AND statut_affichage = 'active' AND date_fin >= NOW()");
     $premium_libre = ((int)$stmt->fetchColumn() < 4);
 
-    // 3. Statut Flux / Régulière (Seuil strict de 15 % du total des annonces actives)
+   // 3. Statut Flux / Régulière (Seuil strict de 15 % du total des annonces actives)
     $stmt_annonces = $bdd->query("SELECT COUNT(*) FROM jevend_annonces WHERE statut = 'actif'");
     $total_annonces = (int)$stmt_annonces->fetchColumn();
-    $quota_max = ceil($total_annonces * 0.15);
 
-    // Calcul direct des bannières régulières actives
-    $sql_flux = "SELECT COUNT(*) FROM jevend_bannieres_actives 
-                 WHERE statut_affichage = 'active' 
-                   AND type_banniere = 'reguliere'
-                   AND DATE_ADD(date_debut_activation, INTERVAL duree_jours DAY) >= NOW()";
-    
-    $stmt_flux = $bdd->query($sql_flux);
-    $total_bannieres_actives = (int)$stmt_flux->fetchColumn();
+    // S'il y a moins de 20 annonces sur le site, la file d'attente reste TOUJOURS libre
+    if ($total_annonces < 20) {
+        $flux_libre = true;
+    } else {
+        $quota_max = ceil($total_annonces * 0.15);
 
-    // Verrouillage si le nombre de bannières atteint ou dépasse le quota de 15 %
-    $flux_libre = ($total_bannieres_actives < $quota_max);
+        // Calcul direct des bannières régulières actives
+        $sql_flux = "SELECT COUNT(*) FROM jevend_bannieres_actives 
+                     WHERE statut_affichage = 'active' 
+                       AND type_banniere = 'reguliere'
+                       AND DATE_ADD(date_debut_activation, INTERVAL duree_jours DAY) >= NOW()";
+        
+        $stmt_flux = $bdd->query($sql_flux);
+        $total_bannieres_actives = (int)$stmt_flux->fetchColumn();
+
+        // Verrouillage si le nombre de bannières atteint ou dépasse le quota de 15 %
+        $flux_libre = ($total_bannieres_actives < $quota_max);
+    }
 
     echo json_encode([
         'statut' => 'succes',
