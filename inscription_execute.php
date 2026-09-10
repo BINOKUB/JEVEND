@@ -7,6 +7,48 @@ session_start();
 require_once 'config.php';
 date_default_timezone_set('America/Montreal');
 
+
+// =============================================================================
+// MODULE DE CONTRÔLE DE SÉCURITÉ JEVEND (Villes, Zone, Langue)
+// =============================================================================
+$ville_soumise = trim($_POST['ville'] ?? ''); // Si applicable dans ton formulaire cible
+$zone_client   = $_POST['zone_detectee'] ?? ''; // Ou en-tête récupéré
+$langue_client = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+
+$erreurs_securite = [];
+
+// 1. Vérification de la ville dans la table existante (ERR_JV-050)
+if (!empty($ville_soumise)) {
+    $stmt_ville = $bdd->prepare("SELECT COUNT(*) FROM jevend_villes WHERE nom = ?");
+    $stmt_ville->execute([$ville_soumise]);
+    if ($stmt_ville->fetchColumn() == 0) {
+        $erreurs_securite[] = "ERR_JV-050";
+    }
+}
+
+// 2. Vérification de la zone (ERR_JV-51)
+$zone_attendue = "Canada/Quebec"; // Exemple de référence régionale
+if ($zone_client !== $zone_attendue && !empty($zone_client)) {
+    $erreurs_securite[] = "ERR_JV-51";
+}
+
+// 3. Vérification de la langue (ERR_JV-52)
+if (!str_starts_with(strtolower($langue_client), 'fr') && !empty($langue_client)) {
+    $erreurs_securite[] = "ERR_JV-52";
+}
+
+// Si une anomalie est détectée, on bloque net : Zéro insertion en BDD, redirection vers la page d'erreur
+if (!empty($erreurs_securite)) {
+    $code_interne = implode('-', $erreurs_securite);
+    header("Location: err_jv.php?code=" . urlencode($code_interne));
+    exit();
+}
+// FIN DE VERIFICATION DE L'I JECTION DE VILLE, ZONE ET LANGAGE... SI OK ALORS ON INJECTE LES DONNES DU NOUVEAU MEMBRE'
+// =============================================================================
+// =============================================================================
+// =============================================================================
+
+
 if (isset($_SESSION['id_utilisateur'])) {
     header('Location: espace_membre.php');
     exit();
