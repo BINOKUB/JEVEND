@@ -1,0 +1,226 @@
+/* =============================================================================
+   NOM DU FICHIER : style_news.css
+   REVISION : 1.4 - Nettoyage de la règle de test et stabilisation du conteneur
+   DESCRIPTION : Feuille de style dédiée à la Salle des Nouvelles - Jevend
+   ============================================================================= */
+
+body.admin-body {
+    background-color: #f1f5f9;
+    color: #1e293b;
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.journal-container { 
+    max-width: 1400px; 
+    margin: 30px auto; 
+    padding: 0 20px; 
+    display: grid; 
+    grid-template-columns: 280px 1fr 300px; 
+    gap: 25px; 
+    align-items: start;
+}
+
+.col-gauche, .col-droite, .col-centre { 
+    background: #ffffff; 
+    padding: 20px; 
+    border-radius: 8px; 
+    border: 1px solid #cbd5e1; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); 
+}
+
+h1, h2, h3 { 
+    color: #0f172a; 
+    font-weight: 600; 
+}
+
+p { 
+    color: #475569; 
+    line-height: 1.6; 
+    font-size: 0.95rem; 
+}
+
+.entete-incitatif { 
+    background: #f8fafc; 
+    color: #1e293b; 
+    padding: 20px; 
+    text-align: center; 
+    border-radius: 6px; 
+    margin-bottom: 25px; 
+    border: 1px solid #3b82f6; 
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.entete-incitatif a { 
+    background: #2563eb; 
+    color: #fff; 
+    padding: 8px 16px; 
+    border-radius: 4px; 
+    text-decoration: none; 
+    font-weight: 600; 
+    display: inline-block; 
+    margin-top: 10px; 
+    transition: background 0.2s;
+}
+
+.entete-incitatif a:hover { 
+    background: #1d4ed8; 
+}
+
+.col-gauche h3 { 
+    font-size: 1.1rem; 
+    border-bottom: 2px solid #3b82f6; 
+    padding-bottom: 8px; 
+    margin-bottom: 15px; 
+}
+
+/* Carte d'annonce : padding à 0 pour que l'image touche les bords */
+.annonce-pige-card { 
+    background: #f8fafc; 
+    color: #1e293b;
+    padding: 0; 
+    border-radius: 6px; 
+    margin-bottom: 15px; 
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    overflow: hidden; 
+}
+
+/* Conteneur strict de l'image (verrouille la taille et masque les débordements) */
+.card-img-container {
+    width: 100%;
+    height: 140px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 6px 6px 0 0;
+}
+
+.card-img-container img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    display: block; 
+}
+
+/* Conteneur pour le texte de la carte afin de garder une marge intérieure */
+.contenu-texte-carte {
+    padding: 12px;
+}
+
+.annonce-pige-card strong { 
+    display: block; 
+    color: #0f172a; 
+    font-size: 0.95rem; 
+    margin-bottom: 4px; 
+}
+
+.annonce-pige-card .prix-annonce { 
+    color: #16a34a; 
+    font-weight: bold; 
+    font-size: 1rem; 
+    margin-bottom: 6px; 
+}
+
+.annonce-pige-card a { 
+    color: #2563eb; 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+    text-decoration: none; 
+}
+
+.annonce-pige-card a:hover { 
+    text-decoration: underline; 
+}
+
+.section-nouvelle { 
+    margin-bottom: 35px; 
+    border-bottom: 1px solid #e2e8f0; 
+    padding-bottom: 25px; 
+}
+
+.section-nouvelle h2 { 
+    font-size: 1.3rem; 
+    margin-bottom: 12px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
+
+.col-droite h3 { 
+    font-size: 1.1rem; 
+    border-bottom: 2px solid #3b82f6; 
+    padding-bottom: 8px; 
+    margin-bottom: 15px; 
+}
+
+.archives-list { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+    max-height: 280px; 
+    overflow-y: auto; 
+}
+
+.archives-list li { 
+    margin-bottom: 10px; 
+    border-bottom: 1px dashed #e2e8f0; 
+    padding-bottom: 8px; 
+}
+
+.archives-list a { 
+    color: #2563eb; 
+    text-decoration: none; 
+    font-size: 0.85rem; 
+    display: block; 
+}
+
+.archives-list a:hover { 
+    color: #1d4ed8; 
+    text-decoration: underline; 
+}
+
+@media(max-width: 1024px) { 
+    .journal-container { 
+        grid-template-columns: 1fr; 
+    } 
+    
+    /* Réorganisation de l'affichage sur mobile uniquement */
+    .col-centre { 
+        order: 1; /* Les actualités passent en premier */
+    }
+    .col-gauche { 
+        order: 2; /* Les trésors de la région / annonces en deuxième */
+    }
+    .col-droite { 
+        order: 3; /* Le coin détente et archives en dernier */
+    }
+}
+
+
+/* Encart publicitaire en diagonale pour remplacer l'image */
+        .card-pub-placeholder {
+            width: 100%;
+            height: 120px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 6px 6px 0 0;
+            border-bottom: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        .card-pub-placeholder span {
+            color: #cbd5e1; /* Gris pâle */
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transform: rotate(-7deg); /* Texte en diagonale */
+            display: inline-block;
+            text-align: center;
+            padding: 10px;
+            user-select: none;
+        }

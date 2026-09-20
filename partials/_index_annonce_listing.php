@@ -81,7 +81,8 @@
                             <div style="font-size:0.65rem; color:#b45309; margin-bottom:6px;">🔥 Envie : <strong><?= $annonce['nb_envies'] ?> acheteur(s)</strong></div>
                         <?php endif; ?>
                         
-                        <h3 class="carte-titre" title="<?= htmlspecialchars($annonce['titre_objet_nettoye']) ?>"><?= htmlspecialchars($annonce['titre_objet_nettoye']) ?></h3>
+                       <?php $titre_propre_carte = htmlspecialchars(html_entity_decode($annonce['titre_objet_nettoye'], ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8'); ?>
+                                                                        <h3 class="carte-titre" title="<?= $titre_propre_carte ?>"><?= $titre_propre_carte ?></h3>
                         
                         <!-- PRIX VENTE FLASH OU PRIX RÉGULIER -->
                         <div class="carte-prix">
@@ -101,7 +102,7 @@
                             <?= ($annonce['est_favoris'] == 1) ? '❤️' : '🤍' ?>
                         </button>
                         
-                        <button style="background:none; border:none; cursor:pointer; font-size:0.9rem; color:#64748b; padding:0;" onclick="partagerAnnonce(<?= $annonce['id_annonces'] ?>, '<?= htmlspecialchars(addslashes($annonce['titre_objet_nettoye']), ENT_QUOTES) ?>')">
+                        <button style="background:none; border:none; cursor:pointer; font-size:0.9rem; color:#64748b; padding:0;" onclick="partagerAnnonce(<?= $annonce['id_annonces'] ?>, '<?= htmlspecialchars(html_entity_decode($annonce['titre_objet_nettoye'], ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8') ?>')">
                             🔗 Partager
                         </button>
                         

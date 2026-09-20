@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" href="icon-tictacto.png">
+    <link rel="apple-touch-icon" href="icon-tictacto.png">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BINOKUB TIC-TAC-TO DE LUXE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --cyan: #00f3ff;
+            --magenta: #ff00ff;
+            --panel-bg: #111;
+        }
+
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+            transition: background 0.5s ease;
+        }
+
+        /* Effet de fond réactif */
+        body.player-turn { background: radial-gradient(circle, #001a1d 0%, #050505 100%); }
+        body.tok-turn { background: radial-gradient(circle, #1a001a 0%, #050505 100%); }
+
+        #game-wrapper {
+            width: 400px; height: 720px;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 20px; transform-origin: center center;
+        }
+
+        header h1 {
+            font-size: 20px; text-align: center;
+            text-shadow: 0 0 10px var(--cyan);
+            margin: 0; letter-spacing: 2px;
+        }
+
+        .screen { width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .screen.active { display: flex; }
+
+        #grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+            gap: 12px; width: 350px; height: 350px; position: relative;
+        }
+
+        .cell {
+            background: rgba(17, 17, 17, 0.8); border: 2px solid #222; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: all 0.2s; position: relative;
+            backdrop-filter: blur(5px);
+        }
+        .cell:active { transform: scale(0.95); }
+        .cell.winning { animation: pulse-win 0.5s infinite alternate; z-index: 5; }
+
+        @keyframes pulse-win {
+            from { box-shadow: 0 0 10px white; filter: brightness(1.2); }
+            to { box-shadow: 0 0 30px white; filter: brightness(1.8); }
+        }
+
+        /* Système de Particules */
+        #particle-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 20;
+        }
+
+        #win-line {
+            position: absolute; background: white; border-radius: 10px;
+            box-shadow: 0 0 25px white, 0 0 10px var(--cyan); z-index: 15; display: none;
+            pointer-events: none;
+        }
+
+        /* UI & Boutons */
+        .menu-box { background: rgba(15, 15, 15, 0.9); padding: 25px; border: 1px solid #333; border-radius: 20px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .choice-label { font-size: 10px; color: #888; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .toggle-group { display: flex; background: #222; border-radius: 10px; margin: 10px 0; padding: 4px; border: 1px solid #333; }
+        .toggle-btn { flex: 1; padding: 10px; font-size: 10px; border-radius: 7px; cursor: pointer; transition: 0.3s; text-align: center; color: #666; }
+        .toggle-btn.active { background: var(--cyan); color: black; font-weight: bold; box-shadow: 0 0 15px var(--cyan); }
+
+        button.main-btn {
+            background: transparent; border: 2px solid var(--cyan); color: var(--cyan);
+            padding: 15px; font-family: 'Orbitron'; font-size: 14px; font-weight: bold;
+            cursor: pointer; width: 100%; border-radius: 8px; margin-top: 15px;
+            transition: 0.3s; text-shadow: 0 0 5px var(--cyan);
+        }
+        button.main-btn:hover { background: var(--cyan); color: black; box-shadow: 0 0 30px var(--cyan); }
+
+        .shape-btn { width: 55px; height: 55px; border: 2px solid #333; display: flex; justify-content: center; align-items: center; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        .shape-btn.selected { border-color: var(--cyan); background: rgba(0, 243, 255, 0.1); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
+
+        #status-text { height: 30px; margin-bottom: 5px; font-size: 14px; font-weight: bold; text-align: center; }
+
+        /* Shake Effect */
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+</head>
+<body class="player-turn">
+
+    <canvas id="particle-canvas"></canvas>
+
+    <div id="game-wrapper">
+        <header><h1>BINOKUB<br>TIC-TAC-TO DE LUXE</h1></header>
+
+        <div id="menu-screen" class="screen active">
+            <div class="menu-box">
+                <div class="choice-label">Mode</div>
+                <div class="toggle-group">
+                    <div class="toggle-btn active" id="mode-classic" onclick="setMode('classic')">CLASSIQUE</div>
+                    <div class="toggle-btn" id="mode-custom" onclick="setMode('custom')">SPECIAL</div>
+                </div>
+
+                <div id="shape-selection" style="display:none;">
+                    <div class="choice-label">Symbole</div>
+                    <div style="display:flex; gap:12px; justify-content:center; margin:10px 0;">
+                        <div class="shape-btn selected" onclick="selectShape('triangle', this)"><svg width="28" height="28" viewBox="0 0 100 100"><path d="M50 15 L85 85 L15 85 Z" fill="none" stroke="#00f3ff" stroke-width="10"/></svg></div>
+                        <div class="shape-btn" onclick="selectShape('square', this)"><svg width="28" height="28" viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" fill="none" stroke="#00f3ff" stroke-width="10"/></svg></div>
+                        <div class="shape-btn" onclick="selectShape('octagon', this)"><svg width="28" height="28" viewBox="0 0 100 100"><path d="M30 15 L70 15 L85 30 L85 70 L70 85 L30 85 L15 70 L15 30 Z" fill="none" stroke="#00f3ff" stroke-width="10"/></svg></div>
+                    </div>
+                </div>
+
+                <div class="choice-label">Premier Joueur</div>
+                <div class="toggle-group">
+                    <div class="toggle-btn active" id="start-player" onclick="setStarter('PLAYER')">MOI</div>
+                    <div class="toggle-btn" id="start-tok" onclick="setStarter('TOK')">TOK</div>
+                </div>
+
+                <button class="main-btn" onclick="initiateGame()">DÉMARRER</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div id="status-text">---</div>
+            <div id="grid">
+                <div id="win-line"></div>
+                <div class="cell" data-index="0"></div><div class="cell" data-index="1"></div><div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div><div class="cell" data-index="4"></div><div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div><div class="cell" data-index="7"></div><div class="cell" data-index="8"></div>
+            </div>
+            <div class="stats">
+                <div class="score-board">
+                    <div>JOUEUR<br><span id="score-player" class="score-val">0</span></div>
+                    <div>TOK<br><span id="score-ia" class="score-val">0</span></div>
+                </div>
+                <button class="main-btn" onclick="resetBoard()">REJOUER</button>
+                <div onclick="quitToMenu()" style="margin-top:15px; font-size:10px; color:#444; cursor:pointer; letter-spacing:1px;">MENU PRINCIPAL</div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    /** --- AUDIO --- **/
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSfx(f1, f2, type='sine', dur=0.15) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = type; o.frequency.setValueAtTime(f1, audioCtx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(f2, audioCtx.currentTime + dur);
+        g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + dur);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + dur);
+    }
+
+    /** --- PARTICULES --- **/
+    const pCanvas = document.getElementById('particle-canvas');
+    const pCtx = pCanvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+        pCanvas.width = window.innerWidth;
+        pCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            this.size = Math.random() * 3 + 1;
+            this.speedX = (Math.random() - 0.5) * 8;
+            this.speedY = (Math.random() - 0.5) * 8;
+            this.life = 1.0;
+        }
+        update() {
+            this.x += this.speedX; this.y += this.speedY;
+            this.life -= 0.02;
+        }
+        draw() {
+            pCtx.fillStyle = this.color;
+            pCtx.globalAlpha = this.life;
+            pCtx.beginPath();
+            pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            pCtx.fill();
+        }
+    }
+
+    function spawnParticles(x, y, color) {
+        for(let i=0; i<15; i++) particles.push(new Particle(x, y, color));
+    }
+
+    function animateParticles() {
+        pCtx.clearRect(0,0,pCanvas.width, pCanvas.height);
+        particles = particles.filter(p => p.life > 0);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    /** --- LOGIQUE --- **/
+    let board = Array(9).fill(""), gameActive = false, currentPlayer = "PLAYER", starter = "PLAYER", gameMode = "classic", myShape = "triangle", scores = { player: 0, ia: 0 };
+
+    function setMode(m) { gameMode = m; document.getElementById('mode-classic').classList.toggle('active', m === 'classic'); document.getElementById('mode-custom').classList.toggle('active', m === 'custom'); document.getElementById('shape-selection').style.display = (m === 'custom') ? 'block' : 'none'; playSfx(400, 600); }
+    function setStarter(s) { starter = s; document.getElementById('start-player').classList.toggle('active', s === 'PLAYER'); document.getElementById('start-tok').classList.toggle('active', s === 'TOK'); playSfx(400, 600); }
+    function selectShape(s, el) { myShape = s; document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); playSfx(500, 700); }
+    function quitToMenu() { document.getElementById('game-screen').classList.remove('active'); document.getElementById('menu-screen').classList.add('active'); }
+
+    function initiateGame() {
+        document.getElementById('menu-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+        resetBoard();
+    }
+
+    function resetBoard() {
+        board = Array(9).fill(""); gameActive = true; currentPlayer = starter;
+        document.getElementById('win-line').style.display = "none";
+        document.querySelectorAll('.cell').forEach(c => { c.innerHTML = ""; c.classList.remove('winning'); });
+        updateStatus();
+        if (currentPlayer === "TOK") setTimeout(iaMove, 600);
+    }
+
+    function updateStatus() {
+        const txt = document.getElementById('status-text');
+        if (!gameActive) return;
+        txt.innerText = (currentPlayer === "PLAYER") ? "VOTRE TOUR" : "TOK RÉFLÉCHIT...";
+        txt.style.color = (currentPlayer === "PLAYER") ? "var(--cyan)" : "var(--magenta)";
+        document.body.className = (currentPlayer === "PLAYER") ? "player-turn" : "tok-turn";
+    }
+
+    document.querySelectorAll('.cell').forEach(cell => {
+        cell.addEventListener('click', (e) => {
+            const idx = cell.dataset.index;
+            if (board[idx] !== "" || !gameActive || currentPlayer !== "PLAYER") return;
+            
+            const rect = cell.getBoundingClientRect();
+            spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, "var(--cyan)");
+            executeMove(idx, "PLAYER");
+        });
+    });
+
+    function executeMove(idx, p) {
+        board[idx] = p;
+        renderCell(idx, p);
+        playSfx(p === "PLAYER" ? 400 : 200, p === "PLAYER" ? 800 : 100, p === "PLAYER" ? 'sine' : 'sawtooth');
+        
+        const win = checkWin(board, p);
+        if (win) { handleEnd(p, win); return; }
+        if (board.every(b => b !== "")) { handleEnd("DRAW"); return; }
+
+        currentPlayer = (p === "PLAYER") ? "TOK" : "PLAYER";
+        updateStatus();
+        if (currentPlayer === "TOK") setTimeout(iaMove, 600);
+    }
+
+    function renderCell(idx, p) {
+        const cell = document.querySelector(`[data-index="${idx}"]`);
+        const cvs = document.createElement('canvas');
+        cvs.width = 100; cvs.height = 100;
+        const ctx = cvs.getContext('2d');
+        const color = (p === "PLAYER") ? "#00f3ff" : "#ff00ff";
+        ctx.strokeStyle = color; ctx.lineWidth = 10; ctx.lineCap = "round"; ctx.shadowBlur = 15; ctx.shadowColor = color;
+
+        if (gameMode === 'classic') {
+            if (p === "PLAYER") { ctx.beginPath(); ctx.arc(50, 50, 35, 0, 7); ctx.stroke(); }
+            else { ctx.beginPath(); ctx.moveTo(25, 25); ctx.lineTo(75, 75); ctx.moveTo(75, 25); ctx.lineTo(25, 75); ctx.stroke(); }
+        } else {
+            if (p === "PLAYER") {
+                ctx.beginPath();
+                if (myShape === 'triangle') { ctx.moveTo(50, 15); ctx.lineTo(85, 85); ctx.lineTo(15, 85); ctx.closePath(); }
+                else if (myShape === 'square') { ctx.rect(20, 20, 60, 60); }
+                else { ctx.moveTo(40,20); ctx.lineTo(60,20); ctx.lineTo(80,40); ctx.lineTo(80,60); ctx.lineTo(60,80); ctx.lineTo(40,80); ctx.lineTo(20,60); ctx.lineTo(20,40); ctx.closePath(); }
+                ctx.stroke();
+            } else { ctx.beginPath(); ctx.moveTo(25, 25); ctx.lineTo(75, 75); ctx.moveTo(75, 25); ctx.lineTo(25, 75); ctx.stroke(); }
+        }
+        cell.appendChild(cvs);
+    }
+
+    function checkWin(b, p) {
+        const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        for (let c of wins) { if (c.every(i => b[i] === p)) return c; }
+        return null;
+    }
+
+    function iaMove() {
+        let best = -Infinity, move;
+        for (let i=0; i<9; i++) {
+            if (board[i] === "") {
+                board[i] = "TOK"; let score = minimax(board, 0, false); board[i] = "";
+                if (score > best) { best = score; move = i; }
+            }
+        }
+        const cell = document.querySelector(`[data-index="${move}"]`);
+        const rect = cell.getBoundingClientRect();
+        spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, "var(--magenta)");
+        executeMove(move, "TOK");
+    }
+
+    function minimax(b, d, isMax) {
+        if (checkWin(b, "TOK")) return 10; if (checkWin(b, "PLAYER")) return -10; if (b.every(s => s !== "")) return 0;
+        if (isMax) {
+            let best = -Infinity;
+            for (let i=0; i<9; i++) { if (b[i]==="") { b[i]="TOK"; best=Math.max(best, minimax(b, d+1, false)); b[i]=""; } }
+            return best;
+        } else {
+            let best = Infinity;
+            for (let i=0; i<9; i++) { if (b[i]==="") { b[i]="PLAYER"; best=Math.min(best, minimax(b, d+1, true)); b[i]=""; } }
+            return best;
+        }
+    }
+
+    function handleEnd(res, combo) {
+        gameActive = false;
+        const txt = document.getElementById('status-text');
+        const wrap = document.getElementById('game-wrapper');
+        wrap.classList.add('shake'); setTimeout(() => wrap.classList.remove('shake'), 500);
+
+        if (res === "DRAW") { txt.innerText = "MATCH NUL"; txt.style.color = "#888"; playSfx(200, 100, 'sawtooth', 0.3); }
+        else {
+            txt.innerText = (res === "PLAYER") ? "VICTOIRE !" : "TOK GAGNE";
+            if (res === "PLAYER") scores.player++; else scores.ia++;
+            document.getElementById('score-player').innerText = scores.player;
+            document.getElementById('score-ia').innerText = scores.ia;
+            highlightWin(combo);
+            playSfx(400, 1200, 'triangle', 0.6);
+        }
+    }
+
+    function highlightWin(combo) {
+        const line = document.getElementById('win-line');
+        const grid = document.getElementById('grid');
+        const first = document.querySelector(`[data-index="${combo[0]}"]`);
+        const last = document.querySelector(`[data-index="${combo[2]}"]`);
+        combo.forEach(i => document.querySelector(`[data-index="${i}"]`).classList.add('winning'));
+        
+        const r1 = first.getBoundingClientRect(), r2 = last.getBoundingClientRect(), gr = grid.getBoundingClientRect();
+        const x1 = r1.left + r1.width/2 - gr.left, y1 = r1.top + r1.height/2 - gr.top;
+        const x2 = r2.left + r2.width/2 - gr.left, y2 = r2.top + r2.height/2 - gr.top;
+        
+        line.style.width = Math.hypot(x2-x1, y2-y1) + "px";
+        line.style.left = x1 + "px"; line.style.top = (y1-3) + "px";
+        line.style.transform = `rotate(${Math.atan2(y2-y1, x2-x1)}rad)`;
+        line.style.transformOrigin = "0 50%"; line.style.display = "block"; line.style.height = "6px";
+    }
+
+    function handleResizeWrapper() {
+        const w = document.getElementById('game-wrapper');
+        const scale = Math.min(window.innerWidth/420, window.innerHeight/740, 1);
+        w.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', handleResizeWrapper); handleResizeWrapper();
+</script>
+</body>
+
+</html>

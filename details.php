@@ -1,8 +1,8 @@
 <?php
 // =============================================================================
 // SCRIPT      : details.php
-// REVISION    : 2.0 - Intégration du bouton Chat conditionné (1 annonce active)
-// DESCRIPTION : Ajout du 3e bouton de contact "CHAT!" si l'utilisateur est éligible.
+// REVISION    : 2.1 - Masquage des contacts directs pour les visiteurs non connectés
+// DESCRIPTION : Invitation à la connexion si l'utilisateur n'est pas authentifié.
 // =============================================================================
 session_start();
 require_once 'config.php';
@@ -10,7 +10,7 @@ require_once 'fonctions_geoloc.php';
 require_once 'partials/_jevend_stat.php';
 
 $id_annonce = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$id_utilisateur_connecte = $_SESSION['id_utilisateur'] ?? null;
+$id_utilisateur_connecte =$_SESSION['id_utilisateur'] ?? null;
 
 if ($id_annonce <= 0) {
     die("Annonce introuvable ou invalide.");
@@ -20,14 +20,13 @@ if ($id_annonce <= 0) {
 $membre_peut_chatter = false;
 if ($id_utilisateur_connecte) {
     try {
-        $stmt_eligible = $bdd->prepare("
+        $stmt_eligible =$bdd->prepare("
             SELECT COUNT(*) 
             FROM jevend_annonces 
             WHERE id_utilisateur = ? AND statut = 'actif'
         ");
         $stmt_eligible->execute([$id_utilisateur_connecte]);
-        if ($stmt_eligible->fetchColumn() > 0) {
-            $membre_peut_chatter = true;
+        if ($stmt_eligible->fetchColumn() > 0) {$membre_peut_chatter = true;
         }
     } catch (PDOException $e) { }
 }
@@ -35,9 +34,9 @@ if ($id_utilisateur_connecte) {
 $id_ville_acheteur = null;
 if ($id_utilisateur_connecte) {
     try {
-        $stmt_acheteur = $bdd->prepare("SELECT id_ville FROM jevend_utilisateurs WHERE id_utilisateur = ?");
+        $stmt_acheteur =$bdd->prepare("SELECT id_ville FROM jevend_utilisateurs WHERE id_utilisateur = ?");
         $stmt_acheteur->execute([$id_utilisateur_connecte]);
-        $id_ville_acheteur = $stmt_acheteur->fetchColumn();
+        $id_ville_acheteur =$stmt_acheteur->fetchColumn();
     } catch (PDOException $e) { }
 }
 
@@ -52,17 +51,14 @@ try {
         LEFT JOIN jevend_listes_envie le ON a.id_annonces = le.id_annonce AND le.id_utilisateur = :id_user
         WHERE a.id_annonces = :id_annonce AND a.statut = 'actif'
     ";
-    $stmt = $bdd->prepare($sql_annonce);
-    $stmt->bindValue(':id_user', $id_utilisateur_connecte, PDO::PARAM_INT);
-    $stmt->bindValue(':id_annonce', $id_annonce, PDO::PARAM_INT);
-    $stmt->execute();
-    $annonce = $stmt->fetch();
+    $stmt =$bdd->prepare($sql_annonce);$stmt->bindValue(':id_user', $id_utilisateur_connecte, PDO::PARAM_INT);$stmt->bindValue(':id_annonce', $id_annonce, PDO::PARAM_INT);$stmt->execute();
+    $annonce =$stmt->fetch();
 
     if (!$annonce) {
         die("Cette vitrine n'est plus disponible ou a été retirée.");
     }
 
-    incrementerVueAnnonce($bdd, $id_annonce, $id_utilisateur_connecte);
+    incrementerVueAnnonce($bdd, $id_annonce,$id_utilisateur_connecte);
 
     $sql_images = "
         SELECT nom_fichier, est_principale 
@@ -72,31 +68,26 @@ try {
     ";
     $stmt_img = $bdd->prepare($sql_images);
     $stmt_img->execute([$id_annonce]);
-    $galerie_images = $stmt_img->fetchAll();
+    $galerie_images =$stmt_img->fetchAll();
 
 } catch (PDOException $e) {
     die("Erreur critique de base de données : " . $e->getMessage());
 }
 
-$image_principale_defaut = !empty($annonce['image_courante']) ? $annonce['image_courante'] : 'defaut.png';
+$image_principale_defaut = !empty($annonce['image_courante']) ?$annonce['image_courante'] : 'defaut.png';
 $chemin_principale_defaut = "uploads/" . $image_principale_defaut;
 
-$date_cree = new DateTime($annonce['date_creation']);
-$date_expire = new DateTime($annonce['date_expiration']);
-$maintenant = new DateTime();
+$date_cree = new DateTime($annonce['date_creation']);$date_expire = new DateTime($annonce['date_expiration']);$maintenant = new DateTime();
 
 $intervalle_total = $date_cree->diff($date_expire)->days;
 $jours_restants = $maintenant->diff($date_expire)->days;
 
-if ($maintenant > $date_expire) {
-    $texte_temps = "❌ Affichage expiré";
+if ($maintenant > $date_expire) {$texte_temps = "❌ Affichage expiré";
 } else {
     $pourcentage_restant = ($intervalle_total > 0) ? ($jours_restants / $intervalle_total) * 100 : 0;
     
-    if ($pourcentage_restant <= 25) {
-        $texte_temps = "⏳ Attention, plus que quelques jours avant la fin !";
-    } elseif ($pourcentage_restant <= 50) {
-        $texte_temps = "⏳ Le temps s'écoule, faites vite...";
+    if ($pourcentage_restant <= 25) {$texte_temps = "⏳ Attention, plus que quelques jours avant la fin !";
+    } elseif ($pourcentage_restant <= 50) {$texte_temps = "⏳ Le temps s'écoule, faites vite...";
     } else {
         $texte_temps = "🗓️ Il reste " . $jours_restants . " jours d'affichage";
     }
@@ -108,17 +99,13 @@ $temps_promo_texte = "";
 
 if (!empty($annonce['prix_promo']) && !empty($annonce['date_fin_promo'])) {
     try {
-        $dt_fin_p = new DateTime($annonce['date_fin_promo']);
-        $dt_now_p = new DateTime();
-        if ($dt_now_p < $dt_fin_p) {
-            $a_promo = true;
+        $dt_fin_p = new DateTime($annonce['date_fin_promo']);$dt_now_p = new DateTime();
+        if ($dt_now_p < $dt_fin_p) {$a_promo = true;
             $prix_promo_affiche = (float)$annonce['prix_promo'];
-            $diff_p = $dt_now_p->diff($dt_fin_p);
-            $h_rest = ($diff_p->days * 24) + $diff_p->h;
+            $diff_p =$dt_now_p->diff($dt_fin_p);$h_rest = ($diff_p->days * 24) +$diff_p->h;
             $temps_promo_texte = "Reste " . $h_rest . "h " . $diff_p->i . "m !";
         }
-    } catch (Exception $e) {
-        $a_promo = false;
+    } catch (Exception $e) {$a_promo = false;
     }
 }
 
@@ -158,10 +145,9 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
                 <div class="vignettes-ligne">
                     <?php 
                     $index = 0;
-                    foreach ($galerie_images as $img): 
+                    foreach ($galerie_images as$img): 
                         $chemin_vignette = "uploads/" . $img['nom_fichier'];
-                        if (file_exists($chemin_vignette)): 
-                            $index++; 
+                        if (file_exists($chemin_vignette)):$index++; 
                             ?>
                             <div class="vignette-item <?= ($img['nom_fichier'] == $image_principale_defaut) ? 'active' : '' ?>" onclick="changerImage('<?= htmlspecialchars($chemin_vignette) ?>', this)">
                                 <img src="<?= htmlspecialchars($chemin_vignette) ?>" alt="Miniature <?= $index ?>">
@@ -178,7 +164,7 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
             <div class="vitrine-vendeur">👤 Vendeur : <?= htmlspecialchars($annonce['vendeur_nom']) ?></div>
 
             <div class="vitrine-meta">
-                <?= obtenirTexteDistance($bdd, $id_ville_acheteur, $annonce['vendeur_ville_id'], $annonce['vendeur_ville_nom'], $annonce['id_utilisateur'], $id_utilisateur_connecte) ?> 
+                <?= obtenirTexteDistance($bdd,$id_ville_acheteur, $annonce['vendeur_ville_id'],$annonce['vendeur_ville_nom'], $annonce['id_utilisateur'],$id_utilisateur_connecte) ?> 
                 • Mis en ligne le : <?= date('d M Y', strtotime($annonce['date_creation'])) ?>
             </div>
 
@@ -208,12 +194,12 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
             <?php if ($a_promo): ?>
                 <div class="vitrine-prix-promo">
                     <del style="color: #94a3b8; font-size: 1.3rem; margin-right: 10px; font-weight: normal;">
-                        <?= number_format((float)$annonce['prix'], 2, ',', ' ') ?> $
+                        <?= number_format((float)$annonce['prix'], 2, ',', ' ') ?>$
                     </del>
-                    <?= number_format($prix_promo_affiche, 2, ',', ' ') ?> $
+                    <?= number_format($prix_promo_affiche, 2, ',', ' ') ?>$
                 </div>
             <?php else: ?>
-                <div class="vitrine-prix"><?= number_format((float)$annonce['prix'], 2, ',', ' ') ?> $</div>
+                <div class="vitrine-prix"><?= number_format((float)$annonce['prix'], 2, ',', ' ') ?>$</div>
             <?php endif; ?>
 
             <div class="vitrine-description"><?= nl2br(htmlspecialchars($description_propre, ENT_QUOTES, 'UTF-8')) ?></div>
@@ -222,6 +208,12 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
             <?php if ($annonce['statut_vente'] === 'vendu'): ?>
                 <div style="background-color: #fef2f2; border: 1px solid #fee2e2; padding: 15px; border-radius: 6px; text-align: center; color: #991b1b; font-weight: bold; margin-bottom: 15px;">
                     🔕 Les options d'appels et de messages ont été désactivées car cet objet a été vendu.
+                </div>
+            <?php elseif (!$id_utilisateur_connecte): ?>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 15px;">
+                    <a href="connexion.php" style="color: #2563eb; text-decoration: none; font-weight: bold; font-size: 0.9rem;">
+                        🔐 Connectez-vous pour contacter le vendeur
+                    </a>
                 </div>
             <?php else: ?>
                 <div class="zone-contact-direct" style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -235,7 +227,7 @@ $description_propre = stripslashes(html_entity_decode($annonce['description_serv
                     <?php endif; ?>
 
                     <!-- BOUTON CHAT CONDITIONNÉ (Uniquement si le membre a au moins 1 annonce active) -->
-                    <?php if ($membre_peut_chatter && $annonce['id_utilisateur'] != $id_utilisateur_connecte): ?>
+                    <?php if ($membre_peut_chatter && $annonce['id_utilisateur'] !=$id_utilisateur_connecte): ?>
                         <a href="chat_membre.php?id_annonce=<?= $id_annonce ?>" class="btn-contact-action" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; display: inline-block; text-align: center;">
                             💬 CHAT!
                         </a>

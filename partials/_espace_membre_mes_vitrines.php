@@ -6,7 +6,7 @@
 ?>
 <!-- ONGLET 1 : MES VITRINES -->
 <div id="onglet-vitrines" class="contenu-onglet actif">
-    <h2>Gestion de vos vitrines</h2>
+    <h2>Gestion de vos vitrines - <a href="actualite.php" class="btn-retour-fil" target="_new">Actualit&eacute;</a></h2>
 
     <!-- VÉRIFICATION DU QUOTA GLOBAL RPM : ALERTE ET BLOCAGE PRÉVENTIF -->
     <?php if (isset($quota_annonces_atteint) && $quota_annonces_atteint): ?>
