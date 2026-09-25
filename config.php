@@ -16,6 +16,15 @@ try {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
+    
+    // Tentative de synchronisation sécurisée de l'heure MySQL
+    try {
+        $bdd->exec("SET time_zone = 'America/Montreal';");
+    } catch (Exception $ex) {
+        // Fallback direct avec le décalage horaire du Québec (-04:00 en période estivale/EDT)
+        @$bdd->exec("SET time_zone = '-04:00';");
+    }
+
 } catch (Exception $e) {
     die("Erreur critique de connexion au serveur de données.");
 }
