@@ -1,33 +1,43 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : admin_memoire.php
+// REVISION : 1.1 - Ajout du mouchard de sécurité (logs des IP tentant d'accéder)
 // DESCRIPTION : Formulaire d'administration sécurisé pour la section "Mémoire & Mystères"
 // =============================================================================
 session_start();
 require_once 'config.php';
 date_default_timezone_set('America/Montreal');
 
-// 1. Récupération des données de l'environnement client
+// 1. Récupération des données de l'environnement client[cite: 6]
 $ip_client = $_SERVER['REMOTE_ADDR'];
 $user_agent = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
 $accept_lang = strtolower($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '');
 
-// 2. Filtres de sécurité anti-robots et de langue
+// 2. Filtres de sécurité anti-robots et de langue[cite: 6]
 $est_un_robot = (empty($user_agent) || preg_match('/bot|crawler|spider|curl|python|wget|libwww|scanner|nikto|ltx71/i', $user_agent));
 $langue_francaise = (strpos($accept_lang, 'fr') !== false);
 
-// 3. Vérification de l'administrateur (Email + IP dans le champ 'neq') combinée aux filtres
+// 3. Vérification de l'administrateur (Email + IP dans le champ 'neq') combinée aux filtres[cite: 6]
 $stmt = $bdd->prepare("SELECT * FROM jevend_utilisateurs WHERE courriel = 'douimet61@gmail.com' AND role = 'admin' AND neq = ?");
 $stmt->execute([$ip_client]);
 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// L'accès est validé uniquement si l'admin est reconnu ET que ce n'est pas un robot ET que la langue est française
+// L'accès est validé uniquement si l'admin est reconnu ET que ce n'est pas un robot ET que la langue est française[cite: 6]
 $autorise = ($admin !== false && !$est_un_robot && $langue_francaise);
+
+// 4. Mouchard de sécurité : Enregistrement de la tentative (autorisée ou bloquée) dans les logs
+try {
+    $statut_str = $autorise ? 'AUTORISE' : 'BLOQUE';
+    $stmt_log = $bdd->prepare("INSERT INTO jevend_secu_logs (page_visee, ip_visiteur, statut_acces, user_agent, date_tentative) VALUES ('admin_memoire.php', ?, ?, ?, NOW())");
+    $stmt_log->execute([$ip_client, $statut_str, $_SERVER['HTTP_USER_AGENT'] ?? 'Inconnu']);
+} catch (Exception $e) {
+    // Échec silencieux pour ne jamais bloquer l'affichage de la page
+}
 
 $message_succes = "";
 $message_erreur = "";
 
-// 4. Traitement du formulaire si l'administrateur est autorisé
+// 5. Traitement du formulaire si l'administrateur est autorisé[cite: 6]
 if ($autorise && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $titre   = trim($_POST['titre'] ?? '');
     $contenu = trim($_POST['contenu'] ?? '');
@@ -174,7 +184,7 @@ if ($autorise && $_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
     <?php if (!$autorise): ?>
-        <!-- ÉCRAN DE REFUS NEUTRE (PAGE INTROUVABLE) -->
+        <!-- ÉCRAN DE REFUS NEUTRE (PAGE INTROUVABLE)[cite: 6] -->
         <div class="alerte-refus">
             <h2 style="color: #f8fafc; margin-top:0;">Page introuvable</h2>
             <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.5;">
@@ -182,7 +192,7 @@ if ($autorise && $_SERVER['REQUEST_METHOD'] === 'POST') {
             </p>
         </div>
     <?php else: ?>
-        <!-- FORMULAIRE DE PUBLICATION SÉCURISÉ -->
+        <!-- FORMULAIRE DE PUBLICATION SÉCURISÉ[cite: 6] -->
         <div class="form-container">
             <a href="actualite.php" class="back-link">← Retour à la salle des nouvelles</a>
             

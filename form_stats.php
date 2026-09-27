@@ -1,32 +1,42 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : form_stats.php
+// REVISION : 1.1 - Ajout du mouchard de sécurité (logs des IP tentant d'accéder)
 // DESCRIPTION : Tableau de bord des statistiques globales et gestion de la bannière 728x90
 // =============================================================================
 session_start();
 require_once 'config.php';
 date_default_timezone_set('America/Montreal');
 
-// 1. Récupération des données de l'environnement client
+// 1. Récupération des données de l'environnement client[cite: 7]
 $ip_client = $_SERVER['REMOTE_ADDR'];
 $user_agent = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
 $accept_lang = strtolower($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '');
 
-// 2. Filtres de sécurité anti-robots et de langue
+// 2. Filtres de sécurité anti-robots et de langue[cite: 7]
 $est_un_robot = (empty($user_agent) || preg_match('/bot|crawler|spider|curl|python|wget|libwww|scanner|nikto|ltx71/i', $user_agent));
 $langue_francaise = (strpos($accept_lang, 'fr') !== false);
 
-// 3. Vérification de l'administrateur (Email + IP dans le champ 'neq')
+// 3. Vérification de l'administrateur (Email + IP dans le champ 'neq')[cite: 7]
 $stmt = $bdd->prepare("SELECT * FROM jevend_utilisateurs WHERE courriel = 'douimet61@gmail.com' AND role = 'admin' AND neq = ?");
 $stmt->execute([$ip_client]);
 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $autorise = ($admin !== false && !$est_un_robot && $langue_francaise);
 
+// 4. Mouchard de sécurité : Enregistrement de la tentative (autorisée ou bloquée) dans les logs
+try {
+    $statut_str = $autorise ? 'AUTORISE' : 'BLOQUE';
+    $stmt_log = $bdd->prepare("INSERT INTO jevend_secu_logs (page_visee, ip_visiteur, statut_acces, user_agent, date_tentative) VALUES ('form_stats.php', ?, ?, ?, NOW())");
+    $stmt_log->execute([$ip_client, $statut_str, $_SERVER['HTTP_USER_AGENT'] ?? 'Inconnu']);
+} catch (Exception $e) {
+    // Échec silencieux pour ne jamais bloquer l'affichage de la page
+}
+
 $message_succes = "";
 $message_erreur = "";
 
-// 4. Traitement du formulaire d'upload de bannière si autorisé
+// 5. Traitement du formulaire d'upload de bannière si autorisé[cite: 7]
 if ($autorise && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $lien_url = trim($_POST['lien_url'] ?? '');
     $statut   = isset($_POST['statut']) ? 'actif' : 'inactif';
@@ -71,7 +81,7 @@ if ($autorise && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// 5. Récupération des statistiques globales si autorisé
+// 6. Récupération des statistiques globales si autorisé[cite: 7]
 $total_absolu = 0;
 $total_mois = 0;
 $stats_par_jour = [];

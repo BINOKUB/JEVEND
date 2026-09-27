@@ -1,6 +1,7 @@
 <?php
 // =============================================================================
 // NOM DU SCRIPT : form.php
+// REVISION : 1.2 - Ajout du mouchard de sécurité (logs des IP tentant d'accéder)
 // DESCRIPTION : Formulaire d'administration ultra-sécurisé (IP + Email + Anti-Bot + Langue FR)
 // =============================================================================
 session_start();
@@ -27,30 +28,40 @@ $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 // L'accès est validé uniquement si l'admin est reconnu ET que ce n'est pas un robot ET que la langue est française
 $autorise = ($admin !== false && !$est_un_robot && $langue_francaise);
 
+// 4. Mouchard de sécurité : Enregistrement de la tentative (autorisée ou bloquée) dans les logs
+try {
+    $statut_str = $autorise ? 'AUTORISE' : 'BLOQUE';
+    $stmt_log = $bdd->prepare("INSERT INTO jevend_secu_logs (page_visee, ip_visiteur, statut_acces, user_agent, date_tentative) VALUES ('form.php', ?, ?, ?, NOW())");
+    $stmt_log->execute([$ip_client, $statut_str, $_SERVER['HTTP_USER_AGENT'] ?? 'Inconnu']);
+} catch (Exception $e) {
+    // Échec silencieux pour ne jamais bloquer l'affichage de la page
+}
+
 $message_succes = "";
 $message_erreur = "";
 
-// 4. Traitement du formulaire si l'administrateur est autorisé
+// 5. Traitement du formulaire si l'administrateur est autorisé
 if ($autorise && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $titre_regional = trim($_POST['titre_regional'] ?? '');
     $texte_regional = trim($_POST['texte_regional'] ?? '');
     $titre_arnaque  = trim($_POST['titre_arnaque'] ?? '');
     $texte_arnaque  = trim($_POST['texte_arnaque'] ?? '');
     $date_pub       = date('Y-m-d'); // Date du jour pour la publication
+    $date_creation  = date('Y-m-d H:i:s'); // Heure exacte de Montréal générée par PHP pour éviter le décalage UTC
 
     if (!empty($titre_regional) && !empty($texte_regional)) {
         try {
-            // Insertion ou mise à jour automatique si la date existe déjà
+            // Insertion ou mise à jour automatique en injectant explicitement l'heure de PHP
             $stmt_insert = $bdd->prepare("
-                INSERT INTO jevend_journal (date_publication, titre_regional, texte_regional, titre_arnaque, texte_arnaque) 
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO jevend_journal (date_publication, titre_regional, texte_regional, titre_arnaque, texte_arnaque, date_creation) 
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE 
                     titre_regional = VALUES(titre_regional),
                     texte_regional = VALUES(texte_regional),
                     titre_arnaque = VALUES(titre_arnaque),
                     texte_arnaque = VALUES(texte_arnaque)
             ");
-            $stmt_insert->execute([$date_pub, $titre_regional, $texte_regional, $titre_arnaque, $texte_arnaque]);
+            $stmt_insert->execute([$date_pub, $titre_regional, $texte_regional, $titre_arnaque, $texte_arnaque, $date_creation]);
             $message_succes = "L'édition du journal a été enregistrée avec succès pour aujourd'hui !";
         } catch (PDOException $e) {
             $message_erreur = "Erreur de base de données : " . $e->getMessage();
